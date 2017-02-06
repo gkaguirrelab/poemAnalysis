@@ -51,8 +51,18 @@ for ii=1:length(T.Properties.VariableNames)
     end
 end
 
+% If there is no Timestamp field, create one which is just row order index
+idx=find(cellfun(@(x) strcmp(x,'Timestamp'), T.Properties.VariableNames));
+if isempty(idx)
+    newTableColumn=cell2table(num2cell((1:1:tRows)'));
+    newTableColumn.Properties.VariableNames{1}='Timestamp';
+    T = [newTableColumn T];
+    warningText=['No Timestamp column found. Row index used for timestamp.'];
+    notesText=[notesText,cellstr(warningText)];
+end
+
 % If a row lacks a subject ID, the values in the row are to be joined
-% with values in the first row above that has a suject ID. This is because
+% with values in the first row above that has a subject ID. This is because
 % the Google spreadhseet will save a list of responses for an item as
 % multiple rows in a column
 idxRowsToJoin=find(ismissing(T.SubjectID));
@@ -77,7 +87,6 @@ if ~isempty(idxRowsToJoin)
     warningText=['The text from rows ' num2str(idxRowsToJoin') ' was merged into the next row above.'];
     notesText=[notesText,cellstr(warningText)];
 end % There are rows to join
-
 
 % Find duplicate subject IDs and merge their data
 [uniqueIDs,idxInUniqueOfTable,idxInTableOfUnique] = unique(T.SubjectID);
