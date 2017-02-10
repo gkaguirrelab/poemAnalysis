@@ -88,6 +88,12 @@ warning(orig_state);
 [tmpTable]=surveyAnalysis_age(compiledTable.(tableFieldNames{1}));
 resultTable=tmpTable;
 
+[tmpTable] = surveyAnalysis_sex( compiledTable.(tableFieldNames{1}) );
+resultTable=innerjoin(resultTable,tmpTable);
+
+[tmpTable] = surveyAnalysis_ACHOO( compiledTable.(tableFieldNames{4}) );
+resultTable=innerjoin(resultTable,tmpTable);
+
 [tmpTable] = surveyAnalysis_conlon_VDS( compiledTable.(tableFieldNames{4}) );
 resultTable=innerjoin(resultTable,tmpTable);
 

@@ -6,7 +6,7 @@ function [ resultTable, summaryMeasureFieldName ] = surveyAnalysis_hogan_phobia(
 
 subjectIDField={'SubjectID_subjectIDList'};
 
-summaryMeasureFieldName='Photophobia_Hogan_2016';
+summaryMeasureFieldName='Hogan_2016_Photophobia';
 
 questions={'Overall_HowSevereDoYouConsiderYourLightSensitivity___',...
 'HowUnpleasantIsStrongLightDuringTheHeadacheFreePeriod___',...

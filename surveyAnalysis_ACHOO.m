@@ -1,25 +1,18 @@
-function [ resultTable, summaryMeasureFieldName ] = surveyAnalysis_choi_phobia( T )
+function [ resultTable, summaryMeasureFieldName ] = surveyAnalysis_ACHOO( T )
 %
 % Details regarding this measure here
 
 subjectIDField={'SubjectID_subjectIDList'};
 
-summaryMeasureFieldName='Choi_2009_HeadachePhotophobia';
+summaryMeasureFieldName='Photic_sneeze';
 
-questions={'x26_DuringYourHeadache_DoYouFeelAGreaterSenseOfGlareOrDazzleInY',...
-'x27_DuringYourHeadache_DoFlickeringLights_Glare_SpecificColorsO',...
-'x28_DuringYourHeadache_DoYouTurnOffTheLightsOrDrawACurtainToAvo',...
-'x29_DuringYourHeadache_DoYouHaveToWearSunglassesEvenInNormalDay',...
-'x30_DuringYourHeadache_DoBrightLightsHurtYourEyes_',...
-'x31_IsYourHeadacheWorsenedByBrightLights_',...
-'x32_IsYourHeadacheTriggeredByBrightLights_'};
+questions={'x1__DoYouTendToSneezeWhenYouStepOutOfADarkRoomIntoBrightSunligh'};
 
-textResponses={'No',...
-'Yes'};
+textResponses={'Yes'};
 
 % This is the offset between the index number of the textResponses
 % [1, 2, 3, ...] and the assigned score value (e.g.) [0, 1, 2, ...]
-scoreOffset=-1;
+scoreOffset=0;
 
 % Check that the column headings match the list of questions
 questionsStartIdx=find(strcmp(T.Properties.VariableNames,questions{1}));
@@ -53,6 +46,7 @@ end
 % the responses for a subject result in an undefined total score.
 scoreMatrix=table2array(T(:,questionsStartIdx:questionsStartIdx+length(questions)-1));
 sumScore=sum(scoreMatrix,2);
+
 
 % Create a little table with the subject IDs and scores
 resultTable=T(:,subjectIDIdx);

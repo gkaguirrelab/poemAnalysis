@@ -6,7 +6,7 @@ function [ resultTable, summaryMeasureFieldName ] = surveyAnalysis_conlon_VDS( T
 
 subjectIDField={'SubjectID_subjectIDList'};
 
-summaryMeasureFieldName='VDS_Conlon_1999';
+summaryMeasureFieldName='Conlon_1999_VDS';
 
 questions={'x3__DoYourEyesEverFeelWatery_Red_Sore_Strained_Tired_Dry_Gritty',...
 'x4_DoYourEyesEverFeelWatery_Red_Sore_Strained_Tired_DryOrGritty',...
