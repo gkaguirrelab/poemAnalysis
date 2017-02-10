@@ -1,4 +1,4 @@
-function [T, notesText] = makeSpreadSheetTable(spreadSheetName)
+function [T, notesText] = surveyAnalysis_preProcess(spreadSheetName)
 % function [T, notesText] = makeSpreadSheetTable(spreadSheetName)
 %
 %  Loads Excel spreadsheets into which Google Sheets survey data has been
