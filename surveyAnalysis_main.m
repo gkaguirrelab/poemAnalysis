@@ -34,7 +34,7 @@ spreadSheetSet={'MELA Demographics Form v1.0 (Responses) Queried.xlsx',...
     'MELA AMPP Headache Survey v1.0 (Responses) Queried.xlsx'};
 
 
-%% PROCESS
+%% Create and save tables
 
 % Run through once to compile the subjectIDList
 for i=1:length(spreadSheetSet)
@@ -121,3 +121,7 @@ notesText{3}=['User: ' userName];
 writetable(resultTable,outputResultExcelName,'Range','A4','WriteRowNames',true,'Sheet',1)
 cornerRange=['A' strtrim(num2str(size(resultTable,1)+7))];
 writetable(cell2table(notesText'),outputResultExcelName,'WriteVariableNames',false,'Range',cornerRange,'Sheet',1)
+
+%% Explore variables
+
+corr(resultTable.Conlon_1999_VDS,resultTable.Hogan_2016_Photophobia,'type','Spearman','rows','pairwise')
