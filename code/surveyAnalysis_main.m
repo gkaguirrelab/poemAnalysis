@@ -8,7 +8,7 @@
 
 
 %% Housekeeping
-clear all
+clear variables
 close all
 
 [~, userName] = system('whoami');
@@ -21,8 +21,8 @@ surveyDir = '/MELA_subject/Google_Doc_Sheets/';
 analysisDir = '/MELA_analysis/surveyMelanopsinAnalysis/';
 
 % Set the output filenames
-outputRawExcelName=fullfile(dropboxDir, analysisDir, 'MELA_compiledRawSurveyData.xlsx');
-outputResultExcelName=fullfile(dropboxDir, analysisDir, 'MELA_compiledResultSurveyData.xlsx');
+outputRawExcelName=fullfile(dropboxDir, analysisDir, 'MELA_RawSurveyData.xlsx');
+outputResultExcelName=fullfile(dropboxDir, analysisDir, 'MELA_ScoresSurveyData.xlsx');
 
 spreadSheetSet={'MELA Demographics Form v1.0 (Responses) Queried.xlsx',...
     'MELA Screening v1.1 (Responses) Queried.xlsx',...
@@ -49,6 +49,8 @@ for i=1:length(spreadSheetSet)
     end
 end
 subjectIDList.Properties.VariableNames{1}='SubjectID';
+
+clear tmpFill
 
 % Turn off warnings about adding a sheet to the Excel file
 warnID='MATLAB:xlswrite:AddSheet';
@@ -79,6 +81,8 @@ for i=1:length(spreadSheetSet)
     fieldName=strrep(fieldName, ')', '_');
     tableFieldNames{i}=fieldName;
     compiledTable.(tableFieldNames{i})=T;
+    clear tmp
+    clear T
 end
 
 % restore warning state
@@ -109,14 +113,17 @@ resultTable=innerjoin(resultTable,tmpTable);
 [tmpTable] = surveyAnalysis_PAQ_philia( compiledTable.(tableFieldNames{4}) );
 resultTable=innerjoin(resultTable,tmpTable);
 
+clear tmpTable
 
-% Write the resultTable along with some notes.
+% Create some notes for the resultsTable.
 notesText=cell(1,1);
 notesText{1}='MELA survey analysis';
 notesText{2}=['Analysis timestamp: ' datestr(datetime('now','TimeZone','local','Format','d-MMM-y HH:mm:ss'))];
 notesText{3}=['User: ' userName];
-
-%% NEED TO ADD A CALL TO GetGITInfo with MRKLAR toolbox to add github version
+gitInfo=GetGITInfo(getpref('surveyAnalysis', 'surveyMelanopsinAnalysisBaseDir'));
+notesText{4}=['Local code path: ' gitInfo.Path];
+notesText{5}=['Remote code path: ' gitInfo.RemoteRepository{1}];
+notesText{6}=['Revision: ' gitInfo.Revision];
 
 writetable(resultTable,outputResultExcelName,'Range','A4','WriteRowNames',true,'Sheet',1)
 cornerRange=['A' strtrim(num2str(size(resultTable,1)+7))];
