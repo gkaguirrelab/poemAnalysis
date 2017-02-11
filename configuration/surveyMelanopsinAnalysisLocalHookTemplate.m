@@ -20,8 +20,9 @@ fprintf('Running surveyMelanopsinAnalysisLocalHook\n');
 %% Set preferences
 
 % Point at the code
-projectDir = tbLocateProject('surveyMelanopsinAnalysis');
-setpref('surveyAnalysis', 'surveyMelanopsinAnalysisBaseDir', fullfile(projectDir,'code'));
+projectDir = fullfile(tbLocateProject('surveyMelanopsinAnalysis'));
+setpref('surveyMelanopsinAnalysis', 'projectDir', projectDir);
 
 % Add the code to the path
 addpath(genpath(projectDir));
+cd(projectDir);

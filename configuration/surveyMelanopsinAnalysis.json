@@ -17,13 +17,18 @@
 		"hook": "",
 		"importance": "",
 		"localHookTemplate": "",
-		"name": "MRklar",
+		"name": "Psychtoolbox-3",
 		"pathPlacement": "append",
-		"subfolder": "",
+		"subfolder": ["Psychtoolbox\/PsychOneliners"],
 		"toolboxRoot": "",
 		"type": "git",
 		"update": "",
-		"url": "https:\/\/github.com\/gkaguirrelab\/MRklar.git"
+		"url": "https:\/\/github.com\/Psychtoolbox-3\/Psychtoolbox-3.git"
 	}
 
 ]
+
+
+
+
+
