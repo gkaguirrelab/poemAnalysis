@@ -1,4 +1,4 @@
-function [ resultTable, summaryMeasureFieldName ] = surveyAnalysis_sex( T )
+function [ scoreTable, summaryMeasureFieldName ] = surveyAnalysis_sex( T )
 %
 % Details regarding this measure here
 
@@ -12,17 +12,16 @@ textResponses={'Male',...
 'Female',...
 'Do Not Wish to Say'};
 
-% Check that the column headings match the list of questions
-questionsStartIdx=find(strcmp(T.Properties.VariableNames,questions{1}));
-if ~isempty(questionsStartIdx)
-    if ~isequal(T.Properties.VariableNames(questionsStartIdx:questionsStartIdx+length(questions)-1),questions)
-    errorText='The list of hard-coded column headings does not match the headings in the passed table';
-    error(errorText);
-    end
-else
-    errorText='The list of hard-coded column headings does not match the headings in the passed table';
-    error(errorText);
-end
+% Loop through the questions and build the list of indices
+for qq=1:length(questions)
+    questionIdx=find(strcmp(T.Properties.VariableNames,questions{qq}),1);
+    if isempty(questionIdx)
+        errorText='The list of hard-coded column headings does not match the headings in the passed table';
+        error(errorText);
+    else
+        questionIndices(qq)=questionIdx;
+    end % failed to find a question header
+end % loop over questions
 
 % Check that we have the right name for the subjectID field
 subjectIDIdx=find(strcmp(T.Properties.VariableNames,subjectIDField),1);
@@ -37,9 +36,9 @@ for qq=1:length(questions)
 end
 
 % Create a little table with the subject IDs and scores
-resultTable=T(:,subjectIDIdx);
-resultTable=[resultTable,T(:,questionsStartIdx:questionsStartIdx+length(questions)-1)];
-resultTable.Properties.VariableNames{2}=summaryMeasureFieldName;
+scoreTable=T(:,subjectIDIdx);
+scoreTable=[scoreTable,T(:,questionIndices)];
+scoreTable.Properties.VariableNames{2}=summaryMeasureFieldName;
 
 end
 

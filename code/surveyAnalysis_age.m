@@ -1,5 +1,4 @@
-function [ resultTable, summaryMeasureFieldName ] = surveyAnalysis_age( T )
-% function [ processedTable ] = surveyAnalysis_VDS( T )
+function [ scoreTable, summaryMeasureFieldName ] = surveyAnalysis_age( T )
 %
 % Details regarding the VDS here
 %
@@ -36,9 +35,9 @@ end
 age=caldiff([datetime(T.(YoB),1,1),T.(timestamp)]','years')';
 
 % Create a little table with the subject IDs and ages
-resultTable=T(:,subjectIDIdx);
-resultTable=[resultTable,cell2table(num2cell(age))];
-resultTable.Properties.VariableNames{2}=summaryMeasureFieldName;
+scoreTable=T(:,subjectIDIdx);
+scoreTable=[scoreTable,cell2table(num2cell(age))];
+scoreTable.Properties.VariableNames{2}=summaryMeasureFieldName;
 
 end
 

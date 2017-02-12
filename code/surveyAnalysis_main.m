@@ -89,31 +89,38 @@ end
 warning(orig_state);
 
 % Create a result table
-[tmpTable]=surveyAnalysis_age(compiledTable.(tableFieldNames{1}));
-resultTable=tmpTable;
+[tmpScoreTable] = surveyAnalysis_age(compiledTable.(tableFieldNames{1}));
+scoreTable=tmpScoreTable;
 
-[tmpTable] = surveyAnalysis_sex( compiledTable.(tableFieldNames{1}) );
-resultTable=innerjoin(resultTable,tmpTable);
+[tmpScoreTable] = surveyAnalysis_sex( compiledTable.(tableFieldNames{1}) );
+scoreTable=innerjoin(scoreTable,tmpScoreTable);
 
-[tmpTable] = surveyAnalysis_ACHOO( compiledTable.(tableFieldNames{4}) );
-resultTable=innerjoin(resultTable,tmpTable);
+[tmpScoreTable, tmpValuesTable] = surveyAnalysis_ACHOO( compiledTable.(tableFieldNames{4}) );
+scoreTable=innerjoin(scoreTable,tmpScoreTable);
+valuesTable=tmpValuesTable;
 
-[tmpTable] = surveyAnalysis_conlon_VDS( compiledTable.(tableFieldNames{4}) );
-resultTable=innerjoin(resultTable,tmpTable);
+[tmpScoreTable, tmpValuesTable] = surveyAnalysis_conlon_VDS( compiledTable.(tableFieldNames{4}) );
+scoreTable=innerjoin(scoreTable,tmpScoreTable);
+valuesTable=innerjoin(valuesTable,tmpValuesTable);
 
-[tmpTable] = surveyAnalysis_choi_phobia( compiledTable.(tableFieldNames{4}) );
-resultTable=innerjoin(resultTable,tmpTable);
+[tmpScoreTable, tmpValuesTable] = surveyAnalysis_choi_phobia( compiledTable.(tableFieldNames{4}) );
+scoreTable=innerjoin(scoreTable,tmpScoreTable);
+valuesTable=innerjoin(valuesTable,tmpValuesTable);
 
-[tmpTable] = surveyAnalysis_hogan_phobia( compiledTable.(tableFieldNames{4}) );
-resultTable=innerjoin(resultTable,tmpTable);
+[tmpScoreTable, tmpValuesTable] = surveyAnalysis_hogan_phobia( compiledTable.(tableFieldNames{4}) );
+scoreTable=innerjoin(scoreTable,tmpScoreTable);
+valuesTable=innerjoin(valuesTable,tmpValuesTable);
 
-[tmpTable] = surveyAnalysis_PAQ_phobia( compiledTable.(tableFieldNames{4}) );
-resultTable=innerjoin(resultTable,tmpTable);
+[tmpScoreTable, tmpValuesTable] = surveyAnalysis_PAQ_phobia( compiledTable.(tableFieldNames{4}) );
+scoreTable=innerjoin(scoreTable,tmpScoreTable);
+valuesTable=innerjoin(valuesTable,tmpValuesTable);
 
-[tmpTable] = surveyAnalysis_PAQ_philia( compiledTable.(tableFieldNames{4}) );
-resultTable=innerjoin(resultTable,tmpTable);
+[tmpScoreTable, tmpValuesTable] = surveyAnalysis_PAQ_philia( compiledTable.(tableFieldNames{4}) );
+scoreTable=innerjoin(scoreTable,tmpScoreTable);
+valuesTable=innerjoin(valuesTable,tmpValuesTable);
 
-clear tmpTable
+clear tmpScoreTable
+clear tmpValuesTable
 
 % Create some notes for the resultsTable.
 notesText=cell(1,1);
@@ -125,10 +132,22 @@ notesText{4}=['Local code path: ' gitInfo.Path];
 notesText{5}=['Remote code path: ' gitInfo.RemoteRepository{1}];
 notesText{6}=['Revision: ' gitInfo.Revision];
 
-writetable(resultTable,outputResultExcelName,'Range','A4','WriteRowNames',true,'Sheet',1)
-cornerRange=['A' strtrim(num2str(size(resultTable,1)+7))];
+writetable(scoreTable,outputResultExcelName,'Range','A4','WriteRowNames',true,'Sheet',1)
+cornerRange=['A' strtrim(num2str(size(scoreTable,1)+7))];
 writetable(cell2table(notesText'),outputResultExcelName,'WriteVariableNames',false,'Range',cornerRange,'Sheet',1)
 
 %% Explore variables
+surveyAnalysis_performPCA(valuesTable);
+surveyAnalysis_performPCA( [scoreTable(:,1),scoreTable(:,4:end) ]);
 
-corr(resultTable.Conlon_1999_VDS,resultTable.Hogan_2016_Photophobia,'type','Spearman','rows','pairwise')
+corrValue=corr(scoreTable.Conlon_1999_VDS,scoreTable.Hogan_2016_Photophobia,'type','Spearman','rows','pairwise');
+outline=['Spearman correlation, Conlon_1999_VDS x Hogan_2016_Photophobia: ' strtrim(num2str(corrValue)) '\n'];
+fprintf(outline);
+
+corrValue=corr(scoreTable.Conlon_1999_VDS,scoreTable.PAQ_phobia,'type','Spearman','rows','pairwise');
+outline=['Spearman correlation, Conlon_1999_VDS x PAQ_phobia: ' strtrim(num2str(corrValue)) '\n'];
+fprintf(outline);
+
+corrValue=corr(scoreTable.PAQ_philia,scoreTable.PAQ_phobia,'type','Spearman','rows','pairwise');
+outline=['Spearman correlation, PAQ_philia x PAQ_phobia: ' strtrim(num2str(corrValue)) '\n'];
+fprintf(outline);
