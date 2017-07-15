@@ -22,80 +22,17 @@ analysisDir = '/MELA_analysis/surveyMelanopsinAnalysis/Qualtrics/';
 
 % Set the output filenames
 outputResultExcelName=fullfile(dropboxDir, analysisDir, 'MELA_QualtricsHeadacheResults.xlsx');
-
 rawDataSheets={'Headache Assessment Instrument v1.1_July 5, 2017_09.32.csv'};
 
+% Loop through the datasheets
+
+% get the full path to thisDataSheet
 thisDataSheetFileName=fullfile(dropboxDir, qualtricsDataDir, rawDataSheets{1});
+
+% load and pre-process thisDataSheet, returning table "T"
 [T, notesText] = qualtricsAnalysis_preProcess(thisDataSheetFileName);
 
-%% TO DO NEXT:
-% - Use a format key value to parse Dates into date fields, not strings
-% - Start building the path logic for assignment
+% classify headache
+qualtricsAnalysis_classifyHeadache( T )
 
-%% Create the table
 
-% % Run through once to compile the subjectIDList
-% for i=1:length(rawDataSheets)
-%     spreadSheetName=fullfile(dropboxDir, qualtricsDataDir, rawDataSheets{i});
-%     T = surveyAnalysis_preProcess(spreadSheetName);
-%     if i==1
-%         subjectIDList=cell2table(T.SubjectID);
-%     else
-%         subjectIDList=outerjoin(subjectIDList,cell2table(T.SubjectID(:)));
-%         tmpFill=fillmissing(table2cell(subjectIDList),'nearest',2);
-%         subjectIDList=cell2table(tmpFill(:,1));
-%     end
-% end
-% subjectIDList.Properties.VariableNames{1}='SubjectID';
-% 
-% clear tmpFill
-% 
-% % Turn off warnings about adding a sheet to the Excel file
-% warnID='MATLAB:xlswrite:AddSheet';
-% orig_state = warning;
-% warning('off',warnID);
-% 
-% % Run through again and save the compiled spreadsheet
-% for i=1:length(rawDataSheets)
-%     spreadSheetName=fullfile(dropboxDir, qualtricsDataDir, rawDataSheets{i});
-%     [T, notesText] = surveyAnalysis_preProcess(spreadSheetName);
-%     % Set each table to have the same subjectID list
-%     T = outerjoin(subjectIDList,T);
-%     % Write the table data
-%     writetable(T,outputRawExcelName,'Range','A4','WriteRowNames',true,'Sheet',i)
-%     % Put the name of this spreadsheet at the top of the sheet
-%     writetable(cell2table(rawDataSheets(i)),outputRawExcelName,'WriteVariableNames',false,'Range','A1','Sheet',i)
-%     % If there is noteText, write this to the table and add a warning
-%     if length(notesText) > 1
-%         writetable(cell2table(cellstr('CONVERSION WARNINGS: check bottom of sheet')),outputRawExcelName,'WriteVariableNames',false,'Range','A2','Sheet',i)
-%         cornerRange=['A' strtrim(num2str(size(T,1)+7))];
-%         writetable(cell2table(notesText),outputRawExcelName,'WriteVariableNames',false,'Range',cornerRange,'Sheet',i)
-%     end
-%     % Save the table into a a structure with an informative field name
-%     tmp=strsplit(rawDataSheets{i},' ');
-%     fieldName=strjoin(tmp(2:4),'_');
-%     fieldName=strrep(fieldName, '.', '_');
-%     fieldName=strrep(fieldName, '(', '_');
-%     fieldName=strrep(fieldName, ')', '_');
-%     tableFieldNames{i}=fieldName;
-%     compiledTable.(tableFieldNames{i})=T;
-%     clear tmp
-%     clear T
-% end
-% 
-% % restore warning state
-% warning(orig_state);
-% 
-% % Create some notes for the resultsTable.
-% notesText=cell(1,1);
-% notesText{1}='MELA survey analysis';
-% notesText{2}=['Analysis timestamp: ' datestr(datetime('now','TimeZone','local','Format','d-MMM-y HH:mm:ss'))];
-% notesText{3}=['User: ' userName];
-% gitInfo=GetGITInfo(getpref('surveyMelanopsinAnalysis', 'projectDir'));
-% notesText{4}=['Local code path: ' gitInfo.Path];
-% notesText{5}=['Remote code path: ' gitInfo.RemoteRepository{1}];
-% notesText{6}=['Revision: ' gitInfo.Revision];
-% 
-% writetable(scoreTable,outputResultExcelName,'Range','A4','WriteRowNames',true,'Sheet',1)
-% cornerRange=['A' strtrim(num2str(size(scoreTable,1)+7))];
-% writetable(cell2table(notesText'),outputResultExcelName,'WriteVariableNames',false,'Range',cornerRange,'Sheet',1)

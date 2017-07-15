@@ -19,21 +19,18 @@ notesText=cellstr(spreadSheetName);
 subjectIDVarieties={'Q20','SubjectID'};
 subjectIDLabel='SubjectID';
 
+% This is the format of time stamps returned by Qualtrics
+dateTimeFormat='yyyy-MM-dd HH:mm:SS';
+
 %% Read in the table. Suppress some routine warnings.
 warnID='MATLAB:table:ModifiedVarnames';
 orig_state = warning;
 warning('off',warnID);
-T=readtable(spreadSheetName);
+T=readtable(spreadSheetName,'DatetimeType','text');
 warning(orig_state);
 tRows=size(T,1);  tColumns=size(T,2);
 
 %% Clean and Sanity check the table
-
-% Test if the first column just contains row index values, and if so remove
-if strcmp(T.Properties.VariableNames{1},'x1')
-    T.x1=[];
-    tColumns=size(T,2);
-end
 
 % Remove the first two rows, which are junk column labels
 T=T(3:end,:);
@@ -60,47 +57,34 @@ idxNotEmptySubjectIDs=cellfun(@(x) ~strcmp(x,''), T.SubjectID);
 T=T(idxNotEmptySubjectIDs,:);
 tRows=size(T,1);
 
-% 
-% % Find duplicate subject IDs and merge their data
-% [uniqueIDs,idxInUniqueOfTable,idxInTableOfUnique] = unique(T.SubjectID);
-% for ii=1:length(uniqueIDs)
-%     idxDuplicates=find(strcmp(T.SubjectID,uniqueIDs{ii}));
-%     if length(idxDuplicates) > 1
-%         % fill any missing values with non-missing values from other rows
-%         subT=T(idxDuplicates,:);
-%         subT=fillmissing(subT,'next');
-%         % Identify the most recent row entry for this subject ID
-%         mostRecentTimestamp=max(subT.Timestamp);
-%         rowIdx=find(subT.Timestamp==mostRecentTimestamp);
-%         % Update the master index to use the most recent row in building
-%         % the unique table
-%         idxInUniqueOfTable(ii)=idxDuplicates(rowIdx);
-%         % Check if there are any columns there have unequal values
-%         % (excluding the timestamp column)
-%         columnsToTest=find(~strcmp(T.Properties.VariableNames,'Timestamp'));
-%         notEqualFlag=0;
-%         badColumns=[];
-%         for jj=1:length(columnsToTest)
-%             [~,uniqueCount,~]=unique(subT(:,columnsToTest(jj)));
-%             if ~isequal(uniqueCount,1)
-%                 notEqualFlag=1;
-%                 badColumns=[badColumns,columnsToTest(jj)];
-%             end
-%         end
-%         % Build the warning notes
-%         warningText=[uniqueIDs{ii} ' has multiple entries. ' ...
-%             'Using values from timestamp entry ' datestr(subT.Timestamp(rowIdx)) '. '];
-%         if notEqualFlag
-%             warningText=[warningText 'Additionally, these columns have unequal values: ' ...
-%                 strjoin(T.Properties.VariableNames(badColumns),joinDelimiter)];
-%         end % check if there were unequal values across rows
-%         notesText=[notesText,cellstr(warningText)];
-%     end % Duplicate subject IDs were found
-% end % Loop through the unique subject IDs
-% T=T(idxInUniqueOfTable,:);
+% Convert the timestamps to datetime format
+timeStampLabels={'StartDate','EndDate'};
 
 % Assign subject ID as the row name property for the table
 T.Properties.RowNames=T.SubjectID;
+
+for ii=1:length(timeStampLabels)
+    idx=find(strcmp(T.Properties.VariableNames,timeStampLabels{ii}));
+    if ~isempty(idx)
+        columnHeader = T.Properties.VariableNames(idx(1));
+        cellTextTimetamp=table2cell(T(:,idx(1)));
+        tableDatetime=table(datetime(cellTextTimetamp,'InputFormat',dateTimeFormat));
+        tableDatetime.Properties.VariableNames{1}=columnHeader{1};
+        tableDatetime.Properties.RowNames=T.SubjectID;
+        switch idx(1)
+            case 1
+                subTableRight=T(:,idx(1)+1:end);
+                T=[tableDatetime subTableRight];
+            case size(T,2)
+                subTableLeft=T(:,1:idx(1)-1);
+                T=[subTableLeft tableDatetime];
+            otherwise
+                subTableLeft=T(:,1:idx(1)-1);
+                subTableRight=T(:,idx(1)+1:end);
+                T=[subTableLeft tableDatetime subTableRight];
+        end % switch
+    end
+end
 
 % Transpose the notesText for ease of subsequent display
 notesText=notesText';
