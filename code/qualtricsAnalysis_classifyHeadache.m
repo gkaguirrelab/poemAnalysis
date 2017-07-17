@@ -233,6 +233,8 @@ end % loop over subjects
 % Assemble diagnosisTable
 diagnosisTable=table(MigraineWithoutAuraFlag,MigraineWithVisualAura,MigraineWithOtherAura,HeadacheNOS,HeadacheFree);
 diagnosisTable.Properties.VariableNames=diagnoses;
+diagnosisTable.Properties.RowNames=T.Properties.RowNames;
+
 
 end % function
 

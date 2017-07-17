@@ -1,11 +1,11 @@
 function [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName)
 % function [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName)
 %
-%  Loads Excel spreadsheets into which Google Sheets survey data has been
+%  Loads csv file into which Qualtrics migraine assessment data has been
 %  stored. Cleans and organizes the data
 %
 % Inputs:
-%   spreadSheetName: String variable with the full path to the spreadsheet
+%   spreadSheetName: String variable with the full path to the csv file
 %
 % Outputs:
 %   T: The table
@@ -13,7 +13,6 @@ function [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName)
 %
 
 %% Hardcoded variables and housekeeping
-joinDelimiter='; ';
 notesText=cellstr(spreadSheetName);
 
 subjectIDVarieties={'Q20','SubjectID'};
@@ -28,21 +27,18 @@ orig_state = warning;
 warning('off',warnID);
 T=readtable(spreadSheetName,'DatetimeType','text');
 warning(orig_state);
-tRows=size(T,1);  tColumns=size(T,2);
+
 
 %% Clean and Sanity check the table
 
 % Remove the first two rows, which are junk column labels
 T=T(3:end,:);
-tRows=size(T,1);
 
 % Remove empty rows
-T=rmmissing(T,'MinNumMissing',tColumns);
-tRows=size(T,1);
+T=rmmissing(T,'MinNumMissing',size(T,2));
 
 % Remove empty columns
-T=rmmissing(T,2,'MinNumMissing',tRows);
-tColumns=size(T,2);
+T=rmmissing(T,2,'MinNumMissing',size(T,1));
 
 % Identify the column with the Subject ID, and standardize the label
 for ii=1:length(T.Properties.VariableNames)
@@ -55,14 +51,12 @@ end
 % Remove rows with empty subject ID
 idxNotEmptySubjectIDs=cellfun(@(x) ~strcmp(x,''), T.SubjectID);
 T=T(idxNotEmptySubjectIDs,:);
-tRows=size(T,1);
-
-% Convert the timestamps to datetime format
-timeStampLabels={'StartDate','EndDate'};
 
 % Assign subject ID as the row name property for the table
 T.Properties.RowNames=T.SubjectID;
 
+% Convert the timestamps to datetime format
+timeStampLabels={'StartDate','EndDate'};
 for ii=1:length(timeStampLabels)
     idx=find(strcmp(T.Properties.VariableNames,timeStampLabels{ii}));
     if ~isempty(idx)
