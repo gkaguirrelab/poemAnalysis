@@ -11,6 +11,8 @@ diagnoses={'MigraineWithoutAura',...
     'HeadacheNOS',...
     'HeadacheFree'};
 
+% At the outset of processing, all subjects are candidates for all
+% diagnoses. We set these flags to true.
 MigraineWithoutAuraFlag=true(numSubjects, 1);
 MigraineWithVisualAura=true(numSubjects, 1);
 MigraineWithOtherAura=true(numSubjects, 1);
@@ -30,46 +32,64 @@ for thisSubject = 1:numSubjects
     binaryQuestions={'Q1','Q3','Q4','Q7','Q8','Q23'};
     diagnosticResponses={'Yes','Yes','Yes','Yes','No','No'};
     
-    % identify which columns of the table contain the relevant questions
-    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(T.Properties.VariableNames,x))==1, binaryQuestions);
     
-    % determine if these columns contain the diagnostic responses
-    diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-    if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithoutAuraFlag(thisSubject)
-        fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine without aura!\n']);
+    % QuestionExist will all be true of a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
+        % determine if these columns contain the diagnostic responses
+        diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+        if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithoutAuraFlag(thisSubject)
+            fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine without aura!\n']);
+        else
+            MigraineWithoutAuraFlag(thisSubject) = false;
+        end % binary test
     else
+        % If no subject has gone down this particular branch of the survey,
+        % then one or more columns in the table may not be present for these
+        % questions. If this is the case, mark the diagnosis as false.
         MigraineWithoutAuraFlag(thisSubject) = false;
-    end % binary test
+    end
     
     % Define the symptom inventory questions and diagnostic responses
     multiCriterionQuestions={'Q5','Q6'};
-    diagnosticNumberNeeded=[2,1];    
+    diagnosticNumberNeeded=[2,1];
     availableAnswers(1,:) = {'The pain is worse on one side',...
         'The pain is pounding, pulsating, or throbbing',...
         'The pain has moderate or severe intensity',...
-        'The pain is made worse by routine activities such as walking or climbing stairs'};    
+        'The pain is made worse by routine activities such as walking or climbing stairs'};
     availableAnswers(2,:) = {'Nausea or vomiting',...
         'Sensitivity to light',...
         'Sensitivity to noise',''};
     
-    % Find the columns that contain the diagnostic questions
-    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), multiCriterionQuestions);
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(T.Properties.VariableNames,x))==1, multiCriterionQuestions);
     
-    % Loop through the diagnostic questions
-    for qq=1:length(questionColumnIdx)
-        
-        % Get the answer string for this question
-        answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
-        % Test if the answer string contains enough diagnostic answers
-        diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), availableAnswers(qq,:));
-        if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithoutAuraFlag(thisSubject)
-            fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine without aura!\n']);
-        else
-            MigraineWithoutAuraFlag(thisSubject) = false;
-        end % symptom inventory test
-    end % loop over symptom inventory tests
-
-
+    % QuestionExist will all be true of a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), multiCriterionQuestions);
+        % Loop through the diagnostic questions
+        for qq=1:length(questionColumnIdx)
+            % Get the answer string for this question
+            answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
+            % Test if the answer string contains enough diagnostic answers
+            diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), availableAnswers(qq,:));
+            if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithoutAuraFlag(thisSubject)
+                fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine without aura!\n']);
+            else
+                MigraineWithoutAuraFlag(thisSubject) = false;
+            end % symptom inventory test
+        end % loop over symptom inventory tests
+    else
+        % If no subject has gone down this particular branch of the survey,
+        % then one or more columns in the table may not be present for these
+        % questions. If this is the case, mark the diagnosis as false.
+        MigraineWithoutAuraFlag(thisSubject) = false;
+    end
+    
     %% Migraine with visual aura
     % The criteria that the subject must meet:
     %       1) give a specific set of yes/no responses, including:
@@ -86,41 +106,59 @@ for thisSubject = 1:numSubjects
     binaryQuestions={'Q1','Q3','Q8','Q22','Q19'};
     diagnosticResponses={'Yes','Yes','Yes','Yes','5 min to 1 hour'};
     
-    % identify which columns of the table contain the relevant questions
-    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(T.Properties.VariableNames,x))==1, binaryQuestions);
     
-    % determine if these columns contain the diagnostic responses
-    diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-    if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithVisualAura(thisSubject)
-        fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine with visual aura!\n']);
+    % QuestionExist will all be true of a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
+        % determine if these columns contain the diagnostic responses
+        diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+        if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithVisualAura(thisSubject)
+            fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine with visual aura!\n']);
+        else
+            MigraineWithVisualAura(thisSubject) = false;
+        end % binary test
     else
+        % If no subject has gone down this particular branch of the survey,
+        % then one or more columns in the table may not be present for these
+        % questions. If this is the case, mark the diagnosis as false.
         MigraineWithVisualAura(thisSubject) = false;
-    end % binary test
+    end
     
     % Define the necessary and sufficient response in the multiple choice
     % check box button set
     multiCriterionQuestions={'Q9'};
-    diagnosticNumberNeeded=[1];    
-    diagnosticAnswers(1,:) = {'Before the headache'};    
+    diagnosticNumberNeeded=[1];
+    diagnosticAnswers(1,:) = {'Before the headache'};
     
-    % Find the columns that contain the diagnostic questions
-    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), multiCriterionQuestions);
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(T.Properties.VariableNames,x))==1, multiCriterionQuestions);
     
-    % Loop through the diagnostic questions
-    for qq=1:length(questionColumnIdx)
-        
-        % Get the answer string for this question
-        answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
-        % Test if the answer string contains enough diagnostic answers
-        diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
-        if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithVisualAura(thisSubject)
-            fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine with visual aura!\n']);
-        else
-            MigraineWithVisualAura(thisSubject) = false;
-        end % symptom inventory test
-    end % loop over symptom inventory tests
-
-
+    % QuestionExist will all be true of a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), multiCriterionQuestions);
+        % Loop through the diagnostic questions
+        for qq=1:length(questionColumnIdx)
+            % Get the answer string for this question
+            answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
+            % Test if the answer string contains enough diagnostic answers
+            diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
+            if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithVisualAura(thisSubject)
+                fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine with visual aura!\n']);
+            else
+                MigraineWithVisualAura(thisSubject) = false;
+            end % symptom inventory test
+        end % loop over symptom inventory tests
+    else
+        % If no subject has gone down this particular branch of the survey,
+        % then one or more columns in the table may not be present for these
+        % questions. If this is the case, mark the diagnosis as false.
+        MigraineWithVisualAura(thisSubject) = false;
+    end
+    
     %% Migraine with other aura
     % The criteria that the subject must meet:
     %       1) give a specific set of yes/no responses, including:
@@ -137,40 +175,58 @@ for thisSubject = 1:numSubjects
     binaryQuestions={'Q1','Q3','Q23','Q24','Q26'};
     diagnosticResponses={'Yes','Yes','Yes','Yes','5 min to 1 hour'};
     
-    % identify which columns of the table contain the relevant questions
-    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(T.Properties.VariableNames,x))==1, binaryQuestions);
     
-    % determine if these columns contain the diagnostic responses
-    diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-    if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithOtherAura(thisSubject)
-        fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine with other aura!\n']);
+    % QuestionExist will all be true of a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
+        % determine if these columns contain the diagnostic responses
+        diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+        if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithOtherAura(thisSubject)
+            fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine with other aura!\n']);
+        else
+            MigraineWithOtherAura(thisSubject) = false;
+        end % binary test
     else
+        % If no subject has gone down this particular branch of the survey,
+        % then one or more columns in the table may not be present for these
+        % questions. If this is the case, mark the diagnosis as false.
         MigraineWithOtherAura(thisSubject) = false;
-    end % binary test
+    end
     
     % Define the necessary and sufficient response in the multiple choice
     % check box button set
     multiCriterionQuestions={'Q26'};
-    diagnosticNumberNeeded=[1];    
-    diagnosticAnswers(1,:) = {'Before the headache'};    
+    diagnosticNumberNeeded=[1];
+    diagnosticAnswers(1,:) = {'Before the headache'};
     
-    % Find the columns that contain the diagnostic questions
-    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), multiCriterionQuestions);
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(T.Properties.VariableNames,x))==1, multiCriterionQuestions);
     
-    % Loop through the diagnostic questions
-    for qq=1:length(questionColumnIdx)
-        
-        % Get the answer string for this question
-        answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
-        % Test if the answer string contains enough diagnostic answers
-        diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
-        if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithOtherAura(thisSubject)
-            fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine with other aura!\n']);
-        else
-            MigraineWithOtherAura(thisSubject) = false;
-        end % symptom inventory test
-    end % loop over symptom inventory tests
-    
+    % QuestionExist will all be true of a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), multiCriterionQuestions);
+        % Loop through the diagnostic questions
+        for qq=1:length(questionColumnIdx)
+            % Get the answer string for this question
+            answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
+            % Test if the answer string contains enough diagnostic answers
+            diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
+            if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithOtherAura(thisSubject)
+                fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine with other aura!\n']);
+            else
+                MigraineWithOtherAura(thisSubject) = false;
+            end % symptom inventory test
+        end % loop over symptom inventory tests
+    else
+        % If no subject has gone down this particular branch of the survey,
+        % then one or more columns in the table may not be present for these
+        % questions. If this is the case, mark the diagnosis as false.
+        MigraineWithOtherAura(thisSubject) = false;
+    end
     
 end % loop over subjects
 
