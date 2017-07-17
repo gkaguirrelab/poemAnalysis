@@ -23,12 +23,12 @@ for thisSubject = 1:numSubjects
     % There are three sets of criteria that the subject must meet:
     %       1) give a specific set of yes/no responses, including "no" to
     %          questions regarding aura.
-    %       2) endorse 3/4 from symptom list 1
+    %       2) endorse 2/4 from symptom list 1
     %       3) endorse 1/3 from symptom list 2
     
-    % Define the binary questions and the diagnostic responses --  NOTE the diagnostic response for Q8 should be "no". Set to yes for testing purposes at the moment
+    % Define the binary questions and the diagnostic responses
     binaryQuestions={'Q1','Q3','Q4','Q7','Q8','Q23'};
-    diagnosticResponses={'Yes','Yes','Yes','Yes','Yes','No'};
+    diagnosticResponses={'Yes','Yes','Yes','Yes','No','No'};
     
     % identify which columns of the table contain the relevant questions
     questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
@@ -70,10 +70,108 @@ for thisSubject = 1:numSubjects
     end % loop over symptom inventory tests
 
 
-    %% Migrane with aura
-    % Details here
+    %% Migraine with visual aura
+    % The criteria that the subject must meet:
+    %       1) give a specific set of yes/no responses, including:
+    %           - yes to headache questions (Q1, Q3)
+    %           - yes to question regarding visual aura (Q8); Q23 is ignored
+    %           - yes to having more than 2 lifetime visual aura events (Q22)
+    %       2) multiple choice checkbox with one necessary and sufficient
+    %          diagnostic answer: endorse having aura before headache (Q9)
+    %       3) multiple choice radio button, with one diagnostic answer:
+    %          report aura duration between 5 and 60 min (Q19). This can be
+    %          treated as a binary question in the program logic.
+    
+    % Define the binary questions and the diagnostic responses
+    binaryQuestions={'Q1','Q3','Q8','Q22','Q19'};
+    diagnosticResponses={'Yes','Yes','Yes','Yes','5 min to 1 hour'};
+    
+    % identify which columns of the table contain the relevant questions
+    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
+    
+    % determine if these columns contain the diagnostic responses
+    diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+    if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithVisualAura(thisSubject)
+        fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine with visual aura!\n']);
+    else
+        MigraineWithVisualAura(thisSubject) = false;
+    end % binary test
+    
+    % Define the necessary and sufficient response in the multiple choice
+    % check box button set
+    multiCriterionQuestions={'Q9'};
+    diagnosticNumberNeeded=[1];    
+    diagnosticAnswers(1,:) = {'Before the headache'};    
+    
+    % Find the columns that contain the diagnostic questions
+    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), multiCriterionQuestions);
+    
+    % Loop through the diagnostic questions
+    for qq=1:length(questionColumnIdx)
+        
+        % Get the answer string for this question
+        answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
+        % Test if the answer string contains enough diagnostic answers
+        diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
+        if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithVisualAura(thisSubject)
+            fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine with visual aura!\n']);
+        else
+            MigraineWithVisualAura(thisSubject) = false;
+        end % symptom inventory test
+    end % loop over symptom inventory tests
 
 
+    %% Migraine with other aura
+    % The criteria that the subject must meet:
+    %       1) give a specific set of yes/no responses, including:
+    %           - yes to headache questions (Q1, Q3)
+    %           - yes to question regarding other aura (Q23); Q8 is ignored
+    %           - yes to having more than 2 lifetime other aura events (Q24)
+    %       2) multiple choice checkbox with one necessary and sufficient
+    %          diagnostic answer: endorse having aura before headache (Q25)
+    %       3) multiple choice radio button, with one diagnostic answer:
+    %          report aura duration between 5 and 60 min (Q26). This can be
+    %          treated as a binary question in the program logic.
+    
+    % Define the binary questions and the diagnostic responses
+    binaryQuestions={'Q1','Q3','Q23','Q24','Q26'};
+    diagnosticResponses={'Yes','Yes','Yes','Yes','5 min to 1 hour'};
+    
+    % identify which columns of the table contain the relevant questions
+    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), binaryQuestions);
+    
+    % determine if these columns contain the diagnostic responses
+    diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+    if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithOtherAura(thisSubject)
+        fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine with other aura!\n']);
+    else
+        MigraineWithOtherAura(thisSubject) = false;
+    end % binary test
+    
+    % Define the necessary and sufficient response in the multiple choice
+    % check box button set
+    multiCriterionQuestions={'Q26'};
+    diagnosticNumberNeeded=[1];    
+    diagnosticAnswers(1,:) = {'Before the headache'};    
+    
+    % Find the columns that contain the diagnostic questions
+    questionColumnIdx = cellfun(@(x) find(strcmp(T.Properties.VariableNames,x)), multiCriterionQuestions);
+    
+    % Loop through the diagnostic questions
+    for qq=1:length(questionColumnIdx)
+        
+        % Get the answer string for this question
+        answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
+        % Test if the answer string contains enough diagnostic answers
+        diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
+        if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithOtherAura(thisSubject)
+            fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine with other aura!\n']);
+        else
+            MigraineWithOtherAura(thisSubject) = false;
+        end % symptom inventory test
+    end % loop over symptom inventory tests
+    
+    
 end % loop over subjects
 
 % Assemble diagnosisTable
