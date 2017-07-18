@@ -22,17 +22,17 @@ analysisDir = '/MELA_analysis/surveyMelanopsinAnalysis/Qualtrics/';
 
 % Set the output filenames
 outputResultExcelName=fullfile(dropboxDir, analysisDir, 'MELA_QualtricsHeadacheResults.xlsx');
-rawDataSheets={'Headache Assessment Instrument v1.1_July 5, 2017_09.32.csv'};
+rawDataSheets={'Headache Assessment Instrument v1.1_July 5, 2017_09.32.csv', ...
+    'Headache Assessment Instrument v1.1_July 18, 2017_09.25.csv'};
 
 % Loop through the datasheets
 
 % get the full path to thisDataSheet
-thisDataSheetFileName=fullfile(dropboxDir, qualtricsDataDir, rawDataSheets{1});
+thisDataSheetFileName=fullfile(dropboxDir, qualtricsDataDir, rawDataSheets{2});
 
 % load and pre-process thisDataSheet, returning table "T"
 [T, notesText] = qualtricsAnalysis_preProcess(thisDataSheetFileName);
 
 % classify headache
-qualtricsAnalysis_classifyHeadache( T )
-
-
+diagnosisTable = qualtricsAnalysis_classifyHeadache( T );
+writetable(diagnosisTable,outputResultExcelName,'Range','A4','WriteRowNames',true)

@@ -15,7 +15,7 @@ function [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName)
 %% Hardcoded variables and housekeeping
 notesText=cellstr(spreadSheetName);
 
-subjectIDVarieties={'Q20','SubjectID'};
+subjectIDVarieties={'Q20','Subject ID'};
 subjectIDLabel='SubjectID';
 
 % This is the format of time stamps returned by Qualtrics
@@ -30,9 +30,6 @@ warning(orig_state);
 
 
 %% Clean and Sanity check the table
-
-% Remove the first two rows, which are junk column labels
-T=T(3:end,:);
 
 % Remove empty rows
 T=rmmissing(T,'MinNumMissing',size(T,2));
@@ -52,7 +49,23 @@ end
 idxNotEmptySubjectIDs=cellfun(@(x) ~strcmp(x,''), T.SubjectID);
 T=T(idxNotEmptySubjectIDs,:);
 
+% Check for duplicate subject ID names
+uniqueSubjectIDs=unique(T.SubjectID);
+k=cellfun(@(x) find(strcmp(T.SubjectID, x)==1), unique(T.SubjectID), 'UniformOutput', false);
+duplicateSubjectIDsIdx=find(cellfun(@(x) x==2,cellfun(@(x) size(x,1),k,'UniformOutput', false)));
+if ~isempty(duplicateSubjectIDsIdx)
+    for ii=1:length(duplicateSubjectIDsIdx)
+        SubjectIDText=uniqueSubjectIDs{duplicateSubjectIDsIdx(ii)};
+        idx=find(strcmp(T.SubjectID,SubjectIDText));
+        for jj=1:length(idx)
+            T.SubjectID{idx(jj)}=[T.SubjectID{idx(jj)} '_' char(48+jj)];
+        end
+    end
+end
+
 % Assign subject ID as the row name property for the table
+
+
 T.Properties.RowNames=T.SubjectID;
 
 % Convert the timestamps to datetime format
@@ -79,6 +92,12 @@ for ii=1:length(timeStampLabels)
         end % switch
     end
 end
+
+% Stick the question text into the UserData field of the Table
+T.Properties.UserData.QuestionText=table2cell(T(1,:));
+
+% Remove the first two rows, which are now junk column labels
+T=T(3:end,:);
 
 % Transpose the notesText for ease of subsequent display
 notesText=notesText';
