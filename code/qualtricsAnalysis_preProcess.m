@@ -49,6 +49,12 @@ end
 idxNotEmptySubjectIDs=cellfun(@(x) ~strcmp(x,''), T.SubjectID);
 T=T(idxNotEmptySubjectIDs,:);
 
+% Remove rows for which "Finished" is not set to True
+idxTrueFinishedStatus=cellfun(@(x) strcmp(x,'True'), T.Finished);
+T=T(idxTrueFinishedStatus,:);
+
+
+
 % Check for duplicate subject ID names
 uniqueSubjectIDs=unique(T.SubjectID);
 k=cellfun(@(x) find(strcmp(T.SubjectID, x)==1), unique(T.SubjectID), 'UniformOutput', false);
