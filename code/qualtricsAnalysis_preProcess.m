@@ -28,9 +28,7 @@ warning('off',warnID);
 T=readtable(spreadSheetName,'DatetimeType','text');
 warning(orig_state);
 
-
 %% Clean and Sanity check the table
-
 % Remove empty rows
 T=rmmissing(T,'MinNumMissing',size(T,2));
 
@@ -49,10 +47,9 @@ end
 idxNotEmptySubjectIDs=cellfun(@(x) ~strcmp(x,''), T.SubjectID);
 T=T(idxNotEmptySubjectIDs,:);
 
-% Remove rows for which "Finished" is not set to True
-idxTrueFinishedStatus=cellfun(@(x) strcmp(x,'True'), T.Finished);
+% Remove rows for which "Finished" is False
+idxTrueFinishedStatus=cellfun(@(x) ~strcmp(x,'False'), T.Finished);
 T=T(idxTrueFinishedStatus,:);
-
 
 
 % Check for duplicate subject ID names
@@ -70,8 +67,6 @@ if ~isempty(duplicateSubjectIDsIdx)
 end
 
 % Assign subject ID as the row name property for the table
-
-
 T.Properties.RowNames=T.SubjectID;
 
 % Convert the timestamps to datetime format

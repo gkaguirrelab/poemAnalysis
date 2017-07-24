@@ -22,82 +22,7 @@ MigraineWithOtherAuraFlag=true(numSubjects, 1);
 HeadacheFreeFlag=true(numSubjects, 1);
 HeadacheNOSFlag=true(numSubjects, 1);
 
-for thisSubject = 1:numSubjects
-    
-    %% Migrane without aura
-    % There are three sets of criteria that the subject must meet:
-    %       1) give a specific set of yes/no responses, including "no" to
-    %          questions regarding aura.
-    %       2) endorse 2/4 from symptom list 1
-    %       3) endorse 1/3 from symptom list 2
-    
-    % Define the binary questions and the diagnostic responses
-    binaryQuestions={'Do you get headaches?',...
-        'Do you get headaches that are NOT caused by a head injury, hangover, or an illness such as the cold or the flu?',...
-        'Do your headaches ever last more than 4 hours?',...
-        'Have you had this headache 5 or more times in your life?',...
-        'Have you ever seen any spots, stars, lines, flashing lights, zigzag lines, or ''heat waves'' around the time of your headaches?',...
-        'Have you ever had any numbness or tingling of your body or face, weakness on one limb or side of your body or face, difficulty speaking, or a dizzy sensation around the time of your headaches?'};
-    diagnosticResponses={'Yes','Yes','Yes','Yes','No','No'};
-    
-    % Test if there is a column in the table for each question
-    questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryQuestions);
-    
-    % QuestionExist will all be true of a column was found for each question
-    if all(questionExist)
-        % Identify which columns of the table contain the relevant questions.
-        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryQuestions);
-        % determine if these columns contain the diagnostic responses
-        diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-        if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithoutAuraFlag(thisSubject)
-            fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine without aura!\n']);
-        else
-            MigraineWithoutAuraFlag(thisSubject) = false;
-        end % binary test
-    else
-        % If no subject has gone down this particular branch of the survey,
-        % then one or more columns in the table may not be present for these
-        % questions. If this is the case, mark the diagnosis as false.
-        MigraineWithoutAuraFlag(thisSubject) = false;
-    end
-    
-    % Define the symptom inventory questions and diagnostic responses
-    multiCriterionQuestions={'Do any of the following statements describing your pain and symptoms apply to your headaches that are longer than 4 hours? Please mark all that apply.',...
-        'During your headaches that are longer than 4 hours, do you ever experience the following symptoms? Please mark all that apply.'};
-    diagnosticNumberNeeded=[2,1];
-    availableAnswers(1,:) = {'The pain is worse on one side',...
-        'The pain is pounding, pulsating, or throbbing',...
-        'The pain has moderate or severe intensity',...
-        'The pain is made worse by routine activities such as walking or climbing stairs'};
-    availableAnswers(2,:) = {'Nausea or vomiting',...
-        'Sensitivity to light',...
-        'Sensitivity to noise',''};
-    
-    % Test if there is a column in the table for each question
-    questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
-    
-    % QuestionExist will all be true of a column was found for each question
-    if all(questionExist)
-        % Identify which columns of the table contain the relevant questions.
-        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
-        % Loop through the diagnostic questions
-        for qq=1:length(questionColumnIdx)
-            % Get the answer string for this question
-            answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
-            % Test if the answer string contains enough diagnostic answers
-            diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), availableAnswers(qq,:));
-            if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithoutAuraFlag(thisSubject)
-                fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine without aura!\n']);
-            else
-                MigraineWithoutAuraFlag(thisSubject) = false;
-            end % symptom inventory test
-        end % loop over symptom inventory tests
-    else
-        % If no subject has gone down this particular branch of the survey,
-        % then one or more columns in the table may not be present for these
-        % questions. If this is the case, mark the diagnosis as false.
-        MigraineWithoutAuraFlag(thisSubject) = false;
-    end
+for thisSubject = 1:numSubjects    
     
     %% Migraine with visual aura
     % The criteria that the subject must meet:
@@ -171,6 +96,7 @@ for thisSubject = 1:numSubjects
         % questions. If this is the case, mark the diagnosis as false.
         MigraineWithVisualAuraFlag(thisSubject) = false;
     end
+    
     
     %% Migraine with other aura
     % The criteria that the subject must meet:
@@ -246,14 +172,100 @@ for thisSubject = 1:numSubjects
     end
     
     
+    %% Migrane without aura
+    % To qualify for migraine without aura, the candidate must not have
+    %  received a diagnosis of Migraine with visual aura or Migraine with
+    %  other aura. They then must meet these criteria:
+    %       1) give a specific set of yes/no responses
+    %       2) endorse 2/4 from symptom list 1
+    %       3) endorse 1/3 from symptom list 2
+    
+    if ~MigraineWithVisualAuraFlag(thisSubject) && ~MigraineWithOtherAuraFlag(thisSubject)
+        
+        % Define the binary questions and the diagnostic responses
+        binaryQuestions={'Do you get headaches?',...
+            'Do you get headaches that are NOT caused by a head injury, hangover, or an illness such as the cold or the flu?',...
+            'Do your headaches ever last more than 4 hours?',...
+            'Have you had this headache 5 or more times in your life?'};
+        diagnosticResponses={'Yes','Yes','Yes','Yes'};
+        
+        % Test if there is a column in the table for each question
+        questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryQuestions);
+        
+        % QuestionExist will all be true of a column was found for each question
+        if all(questionExist)
+            % Identify which columns of the table contain the relevant questions.
+            questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryQuestions);
+            % determine if these columns contain the diagnostic responses
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+            if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithoutAuraFlag(thisSubject)
+                fprintf(['Subject ' num2str(thisSubject) ' met the first criterion for migraine without aura!\n']);
+            else
+                MigraineWithoutAuraFlag(thisSubject) = false;
+            end % binary test
+        else
+            % If no subject has gone down this particular branch of the survey,
+            % then one or more columns in the table may not be present for these
+            % questions. If this is the case, mark the diagnosis as false.
+            MigraineWithoutAuraFlag(thisSubject) = false;
+        end
+        
+        % Define the symptom inventory questions and diagnostic responses
+        multiCriterionQuestions={'Do any of the following statements describing your pain and other symptoms apply to your headaches that are longer than 4 hours? Please mark all that apply.',...
+            'During your headaches that are longer than 4 hours, do you ever experience the following symptoms? Please mark all that apply.'};
+        diagnosticNumberNeeded=[2,1];
+        clear availableAnswers
+        availableAnswers(1,:) = {'The pain is worse on one side',...
+            'The pain is pounding, pulsating, or throbbing',...
+            'The pain has moderate or severe intensity',...
+            'The pain is made worse by routine activities such as walking or climbing stairs'};
+        availableAnswers(2,:) = {'Nausea or vomiting',...
+            'Sensitivity to light',...
+            'Sensitivity to noise',''};
+        
+        % Test if there is a column in the table for each question
+        questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
+        
+        % QuestionExist will all be true of a column was found for each question
+        if all(questionExist)
+            % Identify which columns of the table contain the relevant questions.
+            questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
+            % Loop through the diagnostic questions
+            for qq=1:length(questionColumnIdx)
+                % Get the answer string for this question
+                answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
+                % Test if the answer string contains enough diagnostic answers
+                diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), availableAnswers(qq,:));
+                if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithoutAuraFlag(thisSubject)
+                    fprintf(['Subject ' num2str(thisSubject) ' met the second criterion for migraine without aura!\n']);
+                else
+                    MigraineWithoutAuraFlag(thisSubject) = false;
+                end % symptom inventory test
+            end % loop over symptom inventory tests
+        else
+            % If no subject has gone down this particular branch of the survey,
+            % then one or more columns in the table may not be present for these
+            % questions. If this is the case, mark the diagnosis as false.
+            MigraineWithoutAuraFlag(thisSubject) = false;
+        end
+        
+    else
+        % The subject has already been given a diagnosis of either Migraine
+        % with visual aura, or Migraine with other aura, or both. As a
+        % consequence, we will set Migraine without aura to false.
+        MigraineWithoutAuraFlag(thisSubject) = false;        
+    end % check that neither Migraine with visual or other aura was true
+    
+    
     %% Headache free
-
+    
     % Define the binary questions and the diagnostic response patterns
     binaryCriterionQuestions={'Do you get headaches?',...
         'Do you get headaches that are NOT caused by a head injury, hangover, or an illness such as the cold or the flu?',...
         'Have you ever had a headache?',...
         'Have you ever had a headache that was NOT caused by a head injury, hangover, or an illness such as the cold or the flu?',...
         'Have you ever had episodes of discomfort, pressure, or pain around your eyes or sinuses?'};
+    clear diagnosticResponses
     diagnosticResponses(1,:) = {'No','' ,'No','' ,'No'};
     diagnosticResponses(2,:) = {'No','' ,'Yes','No','No'};
     diagnosticResponses(3,:) = {'Yes','No','', '' ,'No'};
