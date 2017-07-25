@@ -9,7 +9,9 @@ diagnoses={'MigraineWithoutAura',...
     'MigraineWithVisualAura',...
     'MigraineWithOtherAura',...
     'HeadacheFree',...
-    'HeadacheNOS'};
+    'HeadacheNOS',...
+    'ChoiIctalPhotophobiaScore',...
+    'FamHxOfHeadache'};
 
 % Pull the QuestionText out of the table properties
 QuestionText=T.Properties.UserData.QuestionText;
@@ -21,6 +23,10 @@ MigraineWithVisualAuraFlag=true(numSubjects, 1);
 MigraineWithOtherAuraFlag=true(numSubjects, 1);
 HeadacheFreeFlag=true(numSubjects, 1);
 HeadacheNOSFlag=true(numSubjects, 1);
+% The Choi questions are a score; default to nan
+ChoiIctalPhotohobiaScore=nan(numSubjects, 1);
+% Family history is a 'Yes', 'No', or empty string; default to empty
+FamHxOfHeadacheFlag = cell(numSubjects, 1);
 
 for thisSubject = 1:numSubjects    
     
@@ -276,7 +282,7 @@ for thisSubject = 1:numSubjects
     % for headache free status will be skipped for every subject!
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryCriterionQuestions);
     
-    % QuestionExist will all be true of a column was found for each question
+    % QuestionExist will all be true if a column was found for each question
     if all(questionExist)
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
@@ -309,10 +315,93 @@ for thisSubject = 1:numSubjects
         HeadacheFreeFlag(thisSubject) ] );
     
     
+    %% Choi photophobia questions
+    % The Choi (2009) survey consists of seven questions that assess
+    % photophobia during migraine. The score is the number of 'yes'
+    % responses out of seven.
+    binaryCriterionQuestions={'During your headache, do you feel a greater sense of glare or dazzle in your eyes than usual by bright lights?',...
+        'During your headache, do flickering lights, glare, specific colors or high contrast striped patterns bother you or your eyes?',...
+        'During your headache, do you turn off the lights or draw a curtain to avoid bright conditions?',...
+        'During your headache, do you have to wear sunglasses even in normal daylight?',...
+        'During your headache, do bright lights hurt your eyes?',...
+        'Is your headache worsened by bright lights?',...
+        'Is your headache triggered by bright lights?'};
+    clear diagnosticResponses
+	diagnosticResponses={'Yes','Yes','Yes','Yes','Yes','Yes','Yes'};
+    emptyResponses={'','','','','','',''};
+    
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryCriterionQuestions);
+    
+    % QuestionExist will all be true of a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if any of these columns are empty. If so, this subject has
+        % not completed the Choi survey and is assigned a NaN score
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            ChoiIctalPhotohobiaScore(thisSubject) = nan;
+        else
+            % count how many of these columns contain the diagnostic responses
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+            ChoiIctalPhotohobiaScore(thisSubject) = sum(diagnosticAnswerTest);
+        end % binary test
+    else
+        % If no subject has gone answered the Choi survey questions, then
+        % one or more columns in the table may not be present for these
+        % questions. If this is the case, mark Choi score as NaN.
+        ChoiIctalPhotohobiaScore(thisSubject) = nan;
+    end
+
+    
+    %% Family history of migraine or headache
+    % Did the subject respond that there is a family history of headache.
+    
+    % NOTE: This currently fails to process propertly as there is more than
+    % one question in the spreadsheet with this exact answer text. The fix
+    % will be to detect if there are any columns in which this text
+    % appears, and then test if any of those columns have non-empty
+    % responses for the subject. Throw an error if there is more than one
+    % column with a non-empty response, and otherwise retain the answer if
+    % a single column has a response.
+    binaryCriterionQuestions={'Does anyone in your family have migraines or headaches?'};
+    emptyResponses={''};
+    
+    % Test if there is a single column in the table for this question
+    questionExist = sum(strcmp(QuestionText,binaryCriterionQuestions{1}))==1;
+    
+    % QuestionExist will all be true of a column was found for each question
+    if questionExist
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if this column is empty. If so, this subject has
+        % not completed the family history question
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            FamHxOfHeadacheFlag(thisSubject) = {''};
+        else
+            % Copy over the response string
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+            FamHxOfHeadacheFlag(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+        end % binary test
+    else
+        % If no subject has gone answered the family history question, then
+        % make sure that all entries continue to be empty
+        FamHxOfHeadacheFlag(thisSubject) = {''};
+    end
+    
+    
 end % loop over subjects
 
 % Assemble diagnosisTable
-diagnosisTable=table(MigraineWithoutAuraFlag,MigraineWithVisualAuraFlag,MigraineWithOtherAuraFlag,HeadacheFreeFlag,HeadacheNOSFlag);
+diagnosisTable=table(MigraineWithoutAuraFlag, ...
+    MigraineWithVisualAuraFlag, ...
+    MigraineWithOtherAuraFlag, ...
+    HeadacheFreeFlag, ...
+    HeadacheNOSFlag, ...
+    ChoiIctalPhotohobiaScore, ...
+    FamHxOfHeadacheFlag);
 diagnosisTable.Properties.VariableNames=diagnoses;
 diagnosisTable.Properties.RowNames=T.Properties.RowNames;
 
