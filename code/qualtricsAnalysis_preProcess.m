@@ -51,7 +51,6 @@ T=T(idxNotEmptySubjectIDs,:);
 idxTrueFinishedStatus=cellfun(@(x) ~strcmp(x,'False'), T.Finished);
 T=T(idxTrueFinishedStatus,:);
 
-
 % Check for duplicate subject ID names
 uniqueSubjectIDs=unique(T.SubjectID);
 k=cellfun(@(x) find(strcmp(T.SubjectID, x)==1), unique(T.SubjectID), 'UniformOutput', false);
