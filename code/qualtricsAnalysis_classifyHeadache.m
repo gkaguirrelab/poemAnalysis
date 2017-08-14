@@ -184,8 +184,7 @@ for thisSubject = 1:numSubjects
         % questions. If this is the case, mark the diagnosis as false.
         MigraineWithOtherAuraFlag(thisSubject) = false;
     end
-    
-    
+        
     %% Migrane without aura
     % To qualify for migraine without aura, the candidate must not have
     %  received a diagnosis of Migraine with visual aura or Migraine with
@@ -231,7 +230,7 @@ for thisSubject = 1:numSubjects
         clear diagnosticAnswers
         diagnosticAnswers(1,:) = {'The pain is worse on one side',...
             'The pain is pounding, pulsating, or throbbing',...
-            'The pain has moderate or severe intensity',...
+            'The pain is of moderate or severe intensity',...
             'The pain is made worse by routine activities such as walking or climbing stairs'};
         diagnosticAnswers(2,:) = {'Nausea or vomiting',...
             'Sensitivity to light',...
@@ -336,7 +335,11 @@ for thisSubject = 1:numSubjects
         % The second XXX multiCriterionQuestions derive from the pathway
         % that begins with answering no to "do your headaches last longer
         % than 4 hours?".
-        multiCriterionQuestions={'How would you describe this pain or discomfort?',...
+        % We also explicity exclude from the mild headache diagnosis anyone
+        % who reports that their headaches last longer than 4 hour.
+        multiCriterionQuestions={...
+        'Do your headaches ever last more than 4 hours?',...    
+        'How would you describe this pain or discomfort?',...
         'How intense would you rate this pain or discomfort?',...
         'During these episodes, do you ever experience the following symptoms? Please mark all that apply.',...
         'Do you usually get headaches around your menstrual periods?',...
@@ -345,15 +348,16 @@ for thisSubject = 1:numSubjects
         'How would you describe your MOST SEVERE headaches?',...
         };
     
-        exclusionNumberNeeded=[1,1,1,1,1,1,1];
+        exclusionNumberNeeded=[1,1,1,1,1,1,1,1];
         clear exclusionAnswers
-        exclusionAnswers(1,:)={'Throbbing pain','Stabbing Pain',''};
-        exclusionAnswers(2,:)={'Moderate','Severe',''};
-        exclusionAnswers(3,:)={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
-        exclusionAnswers(4,:)={'Yes','',''};
-        exclusionAnswers(5,:)={'The pain is pounding, pulsating, or throbbing','The pain is of moderate or severe intensity','The pain is made worse by routine activities such as walking or climbing stairs'};
-        exclusionAnswers(6,:)={'Nausea or vomiting','Sensitivity to light','Sensitivity to noise'};
-        exclusionAnswers(7,:)={'Throbbing pain','Stabbing Pain',''};
+        exclusionAnswers(1,:)={'Yes','',''};        
+        exclusionAnswers(2,:)={'Throbbing pain','Stabbing Pain',''};
+        exclusionAnswers(3,:)={'Moderate','Severe',''};
+        exclusionAnswers(4,:)={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
+        exclusionAnswers(5,:)={'Yes','',''};
+        exclusionAnswers(6,:)={'The pain is pounding, pulsating, or throbbing','The pain is of moderate or severe intensity','The pain is made worse by routine activities such as walking or climbing stairs'};
+        exclusionAnswers(7,:)={'Nausea or vomiting','Sensitivity to light','Sensitivity to noise'};
+        exclusionAnswers(8,:)={'Throbbing pain','Stabbing Pain',''};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
