@@ -157,7 +157,7 @@ for thisSubject = 1:numSubjects
     diagnosticNumberNeeded=[1,1];
     clear diagnosticAnswers
     diagnosticAnswers(1,:) = {'Before the headache','',''};
-    diagnosticAnswers(2,:) = {'Numbness or tingling of your body or face','Weakness of your arm, leg, face, or half of your body.','Difficulty speaking'};
+    diagnosticAnswers(2,:) = {'Numbness or tingling of your body or face','Weakness of your arm, leg, face, or half of your body','Difficulty speaking'};
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -230,11 +230,11 @@ for thisSubject = 1:numSubjects
         clear diagnosticAnswers
         diagnosticAnswers(1,:) = {'The pain is worse on one side',...
             'The pain is pounding, pulsating, or throbbing',...
-            'The pain is of moderate or severe intensity',...
+            'The pain is moderate or severe in intensity',...
             'The pain is made worse by routine activities such as walking or climbing stairs'};
-        diagnosticAnswers(2,:) = {'Nausea or vomiting',...
+        diagnosticAnswers(2,:) = {'Nausea and/or vomiting',...
             'Sensitivity to light',...
-            'Sensitivity to noise',''};
+            'Sensitivity to sound',''};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -355,8 +355,8 @@ for thisSubject = 1:numSubjects
         exclusionAnswers(3,:)={'Moderate','Severe',''};
         exclusionAnswers(4,:)={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
         exclusionAnswers(5,:)={'Yes','',''};
-        exclusionAnswers(6,:)={'The pain is pounding, pulsating, or throbbing','The pain is of moderate or severe intensity','The pain is made worse by routine activities such as walking or climbing stairs'};
-        exclusionAnswers(7,:)={'Nausea or vomiting','Sensitivity to light','Sensitivity to noise'};
+        exclusionAnswers(6,:)={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs'};
+        exclusionAnswers(7,:)={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
         exclusionAnswers(8,:)={'Throbbing pain','Stabbing Pain',''};
         
         % Test if there is a column in the table for each question
