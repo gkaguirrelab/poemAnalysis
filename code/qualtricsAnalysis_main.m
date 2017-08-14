@@ -17,12 +17,13 @@ dropboxDir = ...
     fullfile('/Users', userName, '/Dropbox (Aguirre-Brainard Lab)');
 
 %% Set paths to data and output
-qualtricsDataDir = '/MELA_subject/QualtricsData/';
+%qualtricsDataDir = '/MELA_subject/QualtricsData/';
+qualtricsDataDir = '/MELA_analysis/surveyMelanopsinAnalysis/Qualtrics/';
 analysisDir = '/MELA_analysis/surveyMelanopsinAnalysis/Qualtrics/';
 
 % Set the output filenames
 outputResultExcelName=fullfile(dropboxDir, analysisDir, 'MELA_QualtricsHeadacheResults.xlsx');
-rawDataSheets={'PHAT 1A_August 11, 2017_10.03.csv'};
+rawDataSheets={'PHAT 1B_August 14, 2017_18.29.csv'};
 
 % Loop through the datasheets
 
