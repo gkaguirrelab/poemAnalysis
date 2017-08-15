@@ -13,7 +13,8 @@ diagnoses={'MigraineWithoutAura',...
     'HeadacheNOS',...
     'ChoiIctalPhotophobiaScore',...
     'ChildhoodMotionSickness',...
-    'FamHxOfHeadache'};
+    'FamHxOfHeadache',...
+    'SeriousnessQuestion'};
 
 % Pull the QuestionText out of the table properties
 QuestionText=T.Properties.UserData.QuestionText;
@@ -28,10 +29,11 @@ MildHeadacheFlag=true(numSubjects, 1);
 HeadacheNOSFlag=true(numSubjects, 1);
 % The Choi questions are a score; default to nan
 ChoiIctalPhotohobiaScore=nan(numSubjects, 1);
-% Family history and childhood motion sickness responses are 
-% 'Yes', 'No', 'I don't know' or empty string; default to empty
+% These next set of data columns contain the strings copied over from the
+% anser ttext, and default to empty.
 ChildhoodMotionSickness = cell(numSubjects, 1);
-FamHxOfHeadacheFlag = cell(numSubjects, 1);
+FamHxOfHeadache = cell(numSubjects, 1);
+SeriousnessQuestion = cell(numSubjects, 1);
 
 for thisSubject = 1:numSubjects    
     
@@ -329,16 +331,18 @@ for thisSubject = 1:numSubjects
         % responses for a single question, then they do not meet criteria
         % for MildHeadache
     
-        % The first four multiCriterionQuestions derive from the
-        % pathways that follow answering no to "Do you get headaches" or no
-        % to "Do you get headaches that are not caused by ..."
-        % The second XXX multiCriterionQuestions derive from the pathway
-        % that begins with answering no to "do your headaches last longer
-        % than 4 hours?".
-        % We also explicity exclude from the mild headache diagnosis anyone
-        % who reports that their headaches last longer than 4 hour.
+        % We exclude from the mild headache diagnosis anyone who:
+        % 1. reports that their headaches last longer than 4 hour
+        % 2. endorses symptoms suggestive of aura, even if they do not
+        %       meet formal criteria for migraine with aura
+        % 3. reports throbbing,  stabbing pain, or pain that is moderate or
+        %       greater
+        % 4. endorses any of the migraine characteristics of sensory
+        %       sensivity, nausea/vomitting, exacerbation with activity
         multiCriterionQuestions={...
-        'Do your headaches ever last more than 4 hours?',...    
+        'Do your headaches ever last more than 4 hours?',...
+        'Have you ever seen any spots, stars, lines, flashing lights, zigzag lines, or heat waves around the time of your headaches?',...
+        'Around the time of your headaches, have you ever had:',...
         'How would you describe this pain or discomfort?',...
         'How intense would you rate this pain or discomfort?',...
         'During these episodes, do you ever experience the following symptoms? Please mark all that apply.',...
@@ -348,16 +352,18 @@ for thisSubject = 1:numSubjects
         'How would you describe your MOST SEVERE headaches?',...
         };
     
-        exclusionNumberNeeded=[1,1,1,1,1,1,1,1];
+        exclusionNumberNeeded=[1,1,1,1,1,1,1,1,1,1];
         clear exclusionAnswers
-        exclusionAnswers(1,:)={'Yes','',''};        
-        exclusionAnswers(2,:)={'Throbbing pain','Stabbing Pain',''};
-        exclusionAnswers(3,:)={'Moderate','Severe',''};
-        exclusionAnswers(4,:)={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
-        exclusionAnswers(5,:)={'Yes','',''};
-        exclusionAnswers(6,:)={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs'};
-        exclusionAnswers(7,:)={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
-        exclusionAnswers(8,:)={'Throbbing pain','Stabbing Pain',''};
+        exclusionAnswers(1,:) ={'Yes','',''};        
+        exclusionAnswers(2,:) ={'Yes','',''};
+        exclusionAnswers(3,:) ={'Numbness or tingling of your body or face','Weakness of your arm, leg, face, or half of your body','Difficulty speaking'};
+        exclusionAnswers(4,:) ={'Throbbing pain','Stabbing Pain',''};
+        exclusionAnswers(5,:) ={'Moderate','Severe',''};
+        exclusionAnswers(6,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
+        exclusionAnswers(7,:) ={'Yes','',''};
+        exclusionAnswers(8,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs'};
+        exclusionAnswers(9,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
+        exclusionAnswers(10,:)={'Throbbing pain','Stabbing Pain',''};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -492,18 +498,48 @@ for thisSubject = 1:numSubjects
         % happen)
         emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
         if any(emptyAnswerTest)
-            FamHxOfHeadacheFlag(thisSubject) = {''};
+            FamHxOfHeadache(thisSubject) = {''};
         else
             % Copy over the response string
             diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-            FamHxOfHeadacheFlag(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+            FamHxOfHeadache(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
         end % binary test
     else
         % If no subject has answered the family history question, then
         % make sure that all entries continue to be empty
-        FamHxOfHeadacheFlag(thisSubject) = {''};
+        FamHxOfHeadache(thisSubject) = {''};
     end
     
+    
+    %% Question regarding errors or seriousness
+    % What was the response?
+    
+    binaryCriterionQuestions={'Did you take this survey seriously and are your answers sincere? Are all your answers correct?'};
+    emptyResponses={''};
+    
+    % Test if there is a single column in the table for this question
+    questionExist = sum(strcmp(QuestionText,binaryCriterionQuestions{1}))==1;
+    
+    % QuestionExist will all be true of a column was found for each question
+    if questionExist
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if this column is empty. If so, this subject has
+        % not completed the family history question (which should never
+        % happen)
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            SeriousnessQuestion(thisSubject) = {''};
+        else
+            % Copy over the response string
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+            SeriousnessQuestion(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+        end % binary test
+    else
+        % If no subject has answered the family history question, then
+        % make sure that all entries continue to be empty
+        SeriousnessQuestion(thisSubject) = {''};
+    end
     
 end % loop over subjects
 
@@ -516,7 +552,8 @@ diagnosisTable=table(MigraineWithoutAuraFlag, ...
     HeadacheNOSFlag, ...
     ChoiIctalPhotohobiaScore, ...
     ChildhoodMotionSickness, ...
-    FamHxOfHeadacheFlag);
+    FamHxOfHeadache, ...
+    SeriousnessQuestion);
 diagnosisTable.Properties.VariableNames=diagnoses;
 diagnosisTable.Properties.RowNames=T.Properties.RowNames;
 
