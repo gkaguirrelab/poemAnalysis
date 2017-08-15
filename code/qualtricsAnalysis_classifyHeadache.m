@@ -357,13 +357,13 @@ for thisSubject = 1:numSubjects
         exclusionAnswers(1,:) ={'Yes','',''};        
         exclusionAnswers(2,:) ={'Yes','',''};
         exclusionAnswers(3,:) ={'Numbness or tingling of your body or face','Weakness of your arm, leg, face, or half of your body','Difficulty speaking'};
-        exclusionAnswers(4,:) ={'Throbbing pain','Stabbing Pain',''};
+        exclusionAnswers(4,:) ={'Throbbing pain','Stabbing pain',''};
         exclusionAnswers(5,:) ={'Moderate','Severe',''};
         exclusionAnswers(6,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
         exclusionAnswers(7,:) ={'Yes','',''};
         exclusionAnswers(8,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs'};
         exclusionAnswers(9,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
-        exclusionAnswers(10,:)={'Throbbing pain','Stabbing Pain',''};
+        exclusionAnswers(10,:)={'Throbbing pain','Stabbing pain',''};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
