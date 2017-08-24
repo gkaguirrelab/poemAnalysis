@@ -5,11 +5,13 @@ function [diagnosisTable] = qualtricsAnalysis_classifyHeadache( T )
 
 numSubjects = size(T,1);
 
+verbose = false;
+
 diagnoses={'MigraineWithoutAura',...
     'MigraineWithVisualAura',...
     'MigraineWithOtherAura',...
     'HeadacheFree',...
-    'MildHeadache',...
+    'MildNonMigrainousHeadache',...
     'HeadacheNOS',...
     'ChoiIctalPhotophobiaScore',...
     'ChildhoodMotionSickness',...
@@ -25,7 +27,7 @@ MigraineWithoutAuraFlag=true(numSubjects, 1);
 MigraineWithVisualAuraFlag=true(numSubjects, 1);
 MigraineWithOtherAuraFlag=true(numSubjects, 1);
 HeadacheFreeFlag=true(numSubjects, 1);
-MildHeadacheFlag=true(numSubjects, 1);
+MildNonMigrainousHeadacheFlag=true(numSubjects, 1);
 HeadacheNOSFlag=true(numSubjects, 1);
 % The Choi questions are a score; default to nan
 ChoiIctalPhotohobiaScore=nan(numSubjects, 1);
@@ -35,7 +37,7 @@ ChildhoodMotionSickness = cell(numSubjects, 1);
 FamHxOfHeadache = cell(numSubjects, 1);
 SeriousnessQuestion = cell(numSubjects, 1);
 
-for thisSubject = 1:numSubjects    
+for thisSubject = 1:numSubjects
     
     %% Migraine with visual aura
     % The criteria that the subject must meet:
@@ -67,7 +69,9 @@ for thisSubject = 1:numSubjects
         % determine if these columns contain the diagnostic responses
         diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
         if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithVisualAuraFlag(thisSubject)
-            fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine with visual aura!\n']);
+            if verbose
+                fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine with visual aura!\n']);
+            end
         else
             MigraineWithVisualAuraFlag(thisSubject) = false;
         end % binary test
@@ -99,7 +103,9 @@ for thisSubject = 1:numSubjects
             % Test if the answer string contains enough diagnostic answers
             diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
             if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithVisualAuraFlag(thisSubject)
-                fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the second criterion for migraine with visual aura!\n']);
+                if verbose
+                    fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the second criterion for migraine with visual aura!\n']);
+                end
             else
                 MigraineWithVisualAuraFlag(thisSubject) = false;
             end % symptom inventory test
@@ -141,7 +147,9 @@ for thisSubject = 1:numSubjects
         % determine if these columns contain the diagnostic responses
         diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
         if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithOtherAuraFlag(thisSubject)
-            fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine with other aura!\n']);
+            if verbose
+                fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine with other aura!\n']);
+            end
         else
             MigraineWithOtherAuraFlag(thisSubject) = false;
         end % binary test
@@ -175,7 +183,9 @@ for thisSubject = 1:numSubjects
             % Test if the answer string contains enough diagnostic answers
             diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
             if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithOtherAuraFlag(thisSubject)
-                fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' passed multiCriterionQuestion #' num2str(qq) ' for the second criterion for migraine with other aura!\n']);
+                if verbose
+                    fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' passed multiCriterionQuestion #' num2str(qq) ' for the second criterion for migraine with other aura!\n']);
+                end
             else
                 MigraineWithOtherAuraFlag(thisSubject) = false;
             end % symptom inventory test
@@ -186,7 +196,7 @@ for thisSubject = 1:numSubjects
         % questions. If this is the case, mark the diagnosis as false.
         MigraineWithOtherAuraFlag(thisSubject) = false;
     end
-        
+    
     %% Migrane without aura
     % To qualify for migraine without aura, the candidate must not have
     %  received a diagnosis of Migraine with visual aura or Migraine with
@@ -214,7 +224,9 @@ for thisSubject = 1:numSubjects
             % determine if these columns contain the diagnostic responses
             diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
             if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithoutAuraFlag(thisSubject)
-                fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine without aura!\n']);
+                if verbose
+                    fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine without aura!\n']);
+                end
             else
                 MigraineWithoutAuraFlag(thisSubject) = false;
             end % binary test
@@ -252,7 +264,9 @@ for thisSubject = 1:numSubjects
                 % Test if the answer string contains enough diagnostic answers
                 diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
                 if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithoutAuraFlag(thisSubject)
-                    fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' passed multiCriterionQuestion #' num2str(qq) ' for the second criterion for migraine without aura!\n']);
+                    if verbose
+                        fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' passed multiCriterionQuestion #' num2str(qq) ' for the second criterion for migraine without aura!\n']);
+                    end
                 else
                     MigraineWithoutAuraFlag(thisSubject) = false;
                 end % symptom inventory test
@@ -268,11 +282,11 @@ for thisSubject = 1:numSubjects
         % The subject has already been given a diagnosis of either Migraine
         % with visual aura, or Migraine with other aura, or both. As a
         % consequence, we will set Migraine without aura to false.
-        MigraineWithoutAuraFlag(thisSubject) = false;        
+        MigraineWithoutAuraFlag(thisSubject) = false;
     end % check that neither Migraine with visual or other aura was true
     
     
-    %% Headache free    
+    %% Headache free
     % Define the binary questions and the diagnostic response patterns
     binaryCriterionQuestions={'Do you get headaches?',...
         'Do you get headaches that are NOT caused by a head injury, hangover, or an illness such as the cold or the flu?',...
@@ -302,7 +316,9 @@ for thisSubject = 1:numSubjects
         % If any of the patterns were found to match, then give this
         % diagnosis
         if any(sumDiagnosticAnswerTest == length(diagnosticAnswerTest)) && HeadacheFreeFlag(thisSubject)
-            fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the criterion for headache free!\n']);
+            if verbose
+                fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the criterion for headache free!\n']);
+            end
         else
             HeadacheFreeFlag(thisSubject) = false;
         end % binary test
@@ -314,7 +330,7 @@ for thisSubject = 1:numSubjects
     end
     
     
-    %% mildHeadache vs. HeadacheNOS
+    %% mildNonMigrainousHeadache vs. HeadacheNOS
     % If a subject does not fall into any other diagnostic category, then
     % we they will be given the label of either MildHeadache or HeadacheNOS
     % depending upon these questions
@@ -324,13 +340,13 @@ for thisSubject = 1:numSubjects
             MigraineWithVisualAuraFlag(thisSubject) ...
             MigraineWithOtherAuraFlag(thisSubject) ...
             HeadacheFreeFlag(thisSubject) ] )
-
+        
         % Test if the subject has mild headache. This is done with a set of
         % multiCriterionQuestions for which there are exclusionary
         % responses. If the subject provides even one of these exclusionary
         % responses for a single question, then they do not meet criteria
-        % for MildHeadache
-    
+        % for MildNonMigrainousHeadache
+        
         % We exclude from the mild headache diagnosis anyone who:
         % 1. reports that their headaches last longer than 4 hour
         % 2. endorses symptoms suggestive of aura, even if they do not
@@ -340,21 +356,21 @@ for thisSubject = 1:numSubjects
         % 4. endorses any of the migraine characteristics of sensory
         %       sensivity, nausea/vomitting, exacerbation with activity
         multiCriterionQuestions={...
-        'Do your headaches ever last more than 4 hours?',...
-        'Have you ever seen any spots, stars, lines, flashing lights, zigzag lines, or heat waves around the time of your headaches?',...
-        'Around the time of your headaches, have you ever had:',...
-        'How would you describe this pain or discomfort?',...
-        'How intense would you rate this pain or discomfort?',...
-        'During these episodes, do you ever experience the following symptoms? Please mark all that apply.',...
-        'Do you usually get headaches around your menstrual periods?',...
-        'For your MOST SEVERE type of headache, do any of the following statements describe your pain and symptoms? Please mark all that apply.',...
-        'During your MOST SEVERE headaches, do you ever experience the following symptoms? Please mark all that apply.',...
-        'How would you describe your MOST SEVERE headaches?',...
-        };
-    
+            'Do your headaches ever last more than 4 hours?',...
+            'Have you ever seen any spots, stars, lines, flashing lights, zigzag lines, or heat waves around the time of your headaches?',...
+            'Around the time of your headaches, have you ever had:',...
+            'How would you describe this pain or discomfort?',...
+            'How intense would you rate this pain or discomfort?',...
+            'During these episodes, do you ever experience the following symptoms? Please mark all that apply.',...
+            'Do you usually get headaches around your menstrual periods?',...
+            'For your MOST SEVERE type of headache, do any of the following statements describe your pain and symptoms? Please mark all that apply.',...
+            'During your MOST SEVERE headaches, do you ever experience the following symptoms? Please mark all that apply.',...
+            'How would you describe your MOST SEVERE headaches?',...
+            };
+        
         exclusionNumberNeeded=[1,1,1,1,1,1,1,1,1,1];
         clear exclusionAnswers
-        exclusionAnswers(1,:) ={'Yes','',''};        
+        exclusionAnswers(1,:) ={'Yes','',''};
         exclusionAnswers(2,:) ={'Yes','',''};
         exclusionAnswers(3,:) ={'Numbness or tingling of your body or face','Weakness of your arm, leg, face, or half of your body','Difficulty speaking'};
         exclusionAnswers(4,:) ={'Throbbing pain','Stabbing pain',''};
@@ -379,21 +395,23 @@ for thisSubject = 1:numSubjects
                 answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
                 % Test if the answer string contains enough diagnostic answers
                 exclusionAnswerTest=cellfun(@(x) strfind(answerString, x), exclusionAnswers(qq,:));
-                if sum(cellfun(@(x) ~isempty(x),exclusionAnswerTest)) >= exclusionNumberNeeded(qq) && MildHeadacheFlag(thisSubject)
-                    fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' has an exclusionary criterion for MildHeadache!\n']);
-                    MildHeadacheFlag(thisSubject) = false;
+                if sum(cellfun(@(x) ~isempty(x),exclusionAnswerTest)) >= exclusionNumberNeeded(qq) && MildNonMigrainousHeadacheFlag(thisSubject)
+                    if verbose
+                        fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' has an exclusionary criterion for MildHeadache!\n']);
+                    end
+                    MildNonMigrainousHeadacheFlag(thisSubject) = false;
                 end % symptom inventory test
             end % loop over symptom inventory tests
         else
             % No subject has gone down any branch of the survey that could
             % be used to evaluate for MildHeadache. Mark all subjects as
             % false for this diagnosis.
-            MildHeadacheFlag(thisSubject) = false;
+            MildNonMigrainousHeadacheFlag(thisSubject) = false;
         end
         
         % If the subject has met criteria for MildHeadache, then set
         % HeadacheNOSFlag to false
-        if MildHeadacheFlag(thisSubject)
+        if MildNonMigrainousHeadacheFlag(thisSubject)
             HeadacheNOSFlag(thisSubject) = false;
         else
             % if the subject has been excluded from MildHeadache, plus has
@@ -407,7 +425,7 @@ for thisSubject = 1:numSubjects
         % As the subject has a headache diagnosis, then they cannot have
         % either MildHeadache or HeadacheNOS
         HeadacheNOSFlag(thisSubject) = false;
-        MildHeadacheFlag(thisSubject) = false;
+        MildNonMigrainousHeadacheFlag(thisSubject) = false;
     end
     
     %% Choi photophobia questions
@@ -422,7 +440,7 @@ for thisSubject = 1:numSubjects
         'Is your headache worsened by bright lights?',...
         'Is your headache triggered by bright lights?'};
     clear diagnosticResponses
-	diagnosticResponses={'Yes','Yes','Yes','Yes','Yes','Yes','Yes'};
+    diagnosticResponses={'Yes','Yes','Yes','Yes','Yes','Yes','Yes'};
     emptyResponses={'','','','','','',''};
     
     % Test if there is a column in the table for each question
@@ -448,7 +466,7 @@ for thisSubject = 1:numSubjects
         % questions. If this is the case, mark Choi score as NaN.
         ChoiIctalPhotohobiaScore(thisSubject) = nan;
     end
-
+    
     %% History of childhood motion sickness
     % The subject answers this if they did not go down a migraine path
     
@@ -478,7 +496,7 @@ for thisSubject = 1:numSubjects
         % make sure that all entries continue to be empty
         ChildhoodMotionSickness(thisSubject) = {''};
     end
-
+    
     
     %% Family history of migraine or headache
     % What was the subject response to the family history of headache q?
@@ -548,7 +566,7 @@ diagnosisTable=table(MigraineWithoutAuraFlag, ...
     MigraineWithVisualAuraFlag, ...
     MigraineWithOtherAuraFlag, ...
     HeadacheFreeFlag, ...
-    MildHeadacheFlag, ...
+    MildNonMigrainousHeadacheFlag, ...
     HeadacheNOSFlag, ...
     ChoiIctalPhotohobiaScore, ...
     ChildhoodMotionSickness, ...
