@@ -23,7 +23,7 @@ analysisDir = '/MELA_analysis/surveyMelanopsinAnalysis/Qualtrics/';
 
 % Set the output filenames
 outputResultExcelName=fullfile(dropboxDir, analysisDir, 'MELA_QualtricsHeadacheResults.xlsx');
-rawDataSheets={'PHAT 1B_August 15, 2017_15.18.csv'};
+rawDataSheets={'POEM_v0.9_September 8, 2017_15.43.csv'};
 
 % Loop through the datasheets
 

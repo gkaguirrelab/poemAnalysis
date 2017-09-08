@@ -15,7 +15,7 @@ function [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName)
 %% Hardcoded variables and housekeeping
 notesText=cellstr(spreadSheetName);
 
-subjectIDVarieties={'Q20','Subject ID'};
+subjectIDVarieties={'ExternalReference'};
 subjectIDLabel='SubjectID';
 
 % This is the format of time stamps returned by Qualtrics
@@ -27,6 +27,9 @@ orig_state = warning;
 warning('off',warnID);
 T=readtable(spreadSheetName,'DatetimeType','text');
 warning(orig_state);
+
+%% Stick the question text into the UserData field of the Table
+T.Properties.UserData.QuestionText=table2cell(T(1,:));
 
 %% Clean and Sanity check the table
 % Remove empty rows
@@ -42,6 +45,9 @@ for ii=1:length(T.Properties.VariableNames)
         T.Properties.VariableNames{ii}=subjectIDLabel;
     end
 end
+
+% Remove the first two rows, which are now junk column labels
+T=T(3:end,:);
 
 % Remove rows with empty subject ID
 idxNotEmptySubjectIDs=cellfun(@(x) ~strcmp(x,''), T.SubjectID);
@@ -92,12 +98,6 @@ for ii=1:length(timeStampLabels)
         end % switch
     end
 end
-
-% Stick the question text into the UserData field of the Table
-T.Properties.UserData.QuestionText=table2cell(T(1,:));
-
-% Remove the first two rows, which are now junk column labels
-T=T(3:end,:);
 
 % Transpose the notesText for ease of subsequent display
 notesText=notesText';
