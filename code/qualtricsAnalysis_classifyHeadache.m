@@ -39,6 +39,7 @@ SeriousnessQuestion = cell(numSubjects, 1);
 
 for thisSubject = 1:numSubjects
     
+    
     %% Migraine with visual aura
     % The criteria that the subject must meet:
     %       1) give a specific set of yes/no responses, including:
@@ -126,16 +127,17 @@ for thisSubject = 1:numSubjects
     %           - yes to having more than 2 lifetime other aura events (Q24)
     %       2) multiple choice checkbox with one necessary and sufficient
     %          diagnostic answer: endorse having aura before headache (Q25)
-    %       3) multiple choice radio button, with one diagnostic answer:
-    %          report aura duration between 5 and 60 min (Q26). This can be
-    %          treated as a binary question in the program logic.
+    %       3) multiple choice radio button, with two diagnostic answers:
+    %          report aura duration between 5 and 60 min or longer than 60
+    %          minutes. The >60 minute answer is acceptable as it is one
+    %          can meet criteria by having two types of aura that are 
+    %          sequential and together last more than 60 minutes.
     
     % Define the binary questions and the diagnostic responses
     binaryQuestions={'Do you get headaches?',...
         'Do you get headaches that are NOT caused by a head injury, hangover, or an illness such as the cold or the flu?',...
-        'Have you experienced these phenomena with your headaches two or more times in your life?',...
-        'How long do these phenomena typically last?'};
-    diagnosticResponses={'Yes','Yes','Yes','5 min to 1 hour'};
+        'Have you experienced these phenomena with your headaches two or more times in your life?'};
+    diagnosticResponses={'Yes','Yes','Yes'};
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryQuestions);
@@ -163,12 +165,13 @@ for thisSubject = 1:numSubjects
     % Define the necessary and sufficient response in the multiple choice
     % check box button set
     multiCriterionQuestions={'When do you experience these phenomena in relation to your headache? Please mark all that apply.', ...
-        'Around the time of your headaches, have you ever had:'};
+        'Around the time of your headaches, have you ever had:','How long do these phenomena typically last?'};
     diagnosticNumberNeeded=[1,1];
     clear diagnosticAnswers
     diagnosticAnswers(1,:) = {'Before the headache','',''};
     diagnosticAnswers(2,:) = {'Numbness or tingling of your body or face','Weakness of your arm, leg, face, or half of your body','Difficulty speaking'};
-    
+    diagnosticAnswers(3,:) = {'5 min to 1 hour','More than 1 hour',''};
+        
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
     
@@ -196,6 +199,7 @@ for thisSubject = 1:numSubjects
         % questions. If this is the case, mark the diagnosis as false.
         MigraineWithOtherAuraFlag(thisSubject) = false;
     end
+
     
     %% Migrane without aura
     % To qualify for migraine without aura, the candidate must not have
@@ -427,6 +431,7 @@ for thisSubject = 1:numSubjects
         HeadacheNOSFlag(thisSubject) = false;
         MildNonMigrainousHeadacheFlag(thisSubject) = false;
     end
+
     
     %% Choi photophobia questions
     % The Choi (2009) survey consists of seven questions that assess
@@ -466,6 +471,7 @@ for thisSubject = 1:numSubjects
         % questions. If this is the case, mark Choi score as NaN.
         ChoiIctalPhotohobiaScore(thisSubject) = nan;
     end
+
     
     %% History of childhood motion sickness
     % The subject answers this if they did not go down a migraine path
@@ -561,7 +567,8 @@ for thisSubject = 1:numSubjects
     
 end % loop over subjects
 
-% Assemble diagnosisTable
+
+%% Assemble diagnosisTable
 diagnosisTable=table(MigraineWithoutAuraFlag, ...
     MigraineWithVisualAuraFlag, ...
     MigraineWithOtherAuraFlag, ...
