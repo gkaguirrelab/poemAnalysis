@@ -166,7 +166,7 @@ for thisSubject = 1:numSubjects
     % check box button set
     multiCriterionQuestions={'When do you experience these phenomena in relation to your headache? Please mark all that apply.', ...
         'Around the time of your headaches, have you ever had:','How long do these phenomena typically last?'};
-    diagnosticNumberNeeded=[1,1];
+    diagnosticNumberNeeded=[1,1,1];
     clear diagnosticAnswers
     diagnosticAnswers(1,:) = {'Before the headache','',''};
     diagnosticAnswers(2,:) = {'Numbness or tingling of your body or face','Weakness of your arm, leg, face, or half of your body','Difficulty speaking'};
