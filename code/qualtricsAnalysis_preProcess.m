@@ -19,7 +19,8 @@ subjectIDVarieties={'ExternalReference'};
 subjectIDLabel='SubjectID';
 
 % This is the format of time stamps returned by Qualtrics
-dateTimeFormat='yyyy-MM-dd HH:mm:SS';
+dateTimeFormatA='yyyy-MM-dd HH:mm:SS';
+dateTimeFormatB='MM/dd/yy HH:mm';
 
 %% Read in the table. Suppress some routine warnings.
 warnID='MATLAB:table:ModifiedVarnames';
@@ -81,7 +82,13 @@ for ii=1:length(timeStampLabels)
     if ~isempty(idx)
         columnHeader = T.Properties.VariableNames(idx(1));
         cellTextTimetamp=table2cell(T(:,idx(1)));
-        tableDatetime=table(datetime(cellTextTimetamp,'InputFormat',dateTimeFormat));
+        % Not sure what the format is of the date time string. Try one. If
+        % error try the other. I am aware that this is an ugly hack.
+        try
+            tableDatetime=table(datetime(cellTextTimetamp,'InputFormat',dateTimeFormatA));
+        catch
+            tableDatetime=table(datetime(cellTextTimetamp,'InputFormat',dateTimeFormatB));
+        end
         tableDatetime.Properties.VariableNames{1}=columnHeader{1};
         tableDatetime.Properties.RowNames=T.SubjectID;
         switch idx(1)
