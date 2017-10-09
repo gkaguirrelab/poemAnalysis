@@ -22,7 +22,7 @@ analysisDir = '/MELA_analysis/surveyMelanopsinAnalysis/Qualtrics/';
 
 % Set the output filenames
 outputResultExcelName=fullfile(dropboxDir, analysisDir, 'MELA_QualtricsHeadacheResults.xlsx');
-rawDataSheets={'POEM_v1.0_10-01-2017_PPIRemoved.csv'};
+rawDataSheets={'POEM_v1.0_October 9, 2017_09.09.csv'};
 
 % get the full path to thisDataSheet
 thisDataSheetFileName=fullfile(dropboxDir, qualtricsDataDir, rawDataSheets{1});
