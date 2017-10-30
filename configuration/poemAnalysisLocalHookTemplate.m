@@ -1,7 +1,5 @@
-function surveyMelanopsinAnalysisLocalHook
-% surveyMelanopsinAnalysisLocalHook
-%
-% Configure things for processing MELA project surveys.
+function poemAnalysisLocalHook
+% poemAnalysisLocalHook
 %
 % For use with the ToolboxToolbox.  Copy this into your
 % ToolboxToolbox localToolboxHooks directory (by defalut,
@@ -15,13 +13,13 @@ function surveyMelanopsinAnalysisLocalHook
 % to match what is true on your computer.
 
 %% Say hello
-fprintf('Running surveyMelanopsinAnalysisLocalHook\n');
+fprintf('Running poemAnalysisLocalHook\n');
 
 %% Set preferences
 
 % Find the project directory, add it to the path, save this as a
 %  pref, and then make this the current directory
-projectDir = fullfile(tbLocateProject('surveyMelanopsinAnalysis'));
+projectDir = fullfile(tbLocateProject('poemAnalysis'));
 addpath(genpath(projectDir));
-setpref('surveyMelanopsinAnalysis', 'projectDir', projectDir);
+setpref('poemAnalysis', 'projectDir', projectDir);
 cd(projectDir);
