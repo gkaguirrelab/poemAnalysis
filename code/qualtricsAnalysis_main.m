@@ -43,7 +43,8 @@ goldStandardDiagnosis = readtable(goldStandardFileFullPath);
 
 % This is the order of columns in the confusion matrix. Note that we are
 % not including the Migraine with other aura here.
-reOrderedPoemDiagnosisLabels = {'HeadacheFree','MildNonMigrainousHeadache','HeadacheNOS','MigraineWithoutAura','MigraineWithVisualAura'};
+reOrderedPoemDiagnosisLabels = {'HeadacheFree','MildNonMigrainousHeadache','HeadacheNOS','MigraineWithoutAura','MigraineWithVisualAura','MigraineWithOtherAura'};
+outputPoemDiagnosisLabels = {'HeadacheFree','MildNonMigrainousHeadache','HeadacheNOS','MigraineWithoutAura','MigraineWithAnyAura'};
 
 confusionMatrix = zeros(3,5);
 % loop through the subjects in the diagnosisTable
@@ -70,6 +71,12 @@ for ss = 1:size(diagnosisTable,1)
         initialColumnIdx = find(table2array(diagnosisTable(ss,1:6)),1);
         % Find which column this diagnosis will be placed within
         columnIdx = find( strcmp(reOrderedPoemDiagnosisLabels, diagnosisTable.Properties.VariableNames{initialColumnIdx}) ); 
+        % A HACK -- if either migraine with visual or migraine with other
+        % aura is true, then put a value in for the migraine with any aura
+        % column
+        if columnIdx==5 || columnIdx==6
+            columnIdx=5;
+        end
         if ~isempty(rowIdx)
             confusionMatrix(rowIdx,columnIdx) = confusionMatrix(rowIdx,columnIdx) + 1;
         end
@@ -79,7 +86,7 @@ end
 % print out the confusion matrix
 outline='\t';
 for dd = 1:5
-    outline = [outline '\t' reOrderedPoemDiagnosisLabels{dd} '\t'];
+    outline = [outline '\t' outputPoemDiagnosisLabels{dd} '\t'];
 end
 fprintf([outline '\n']);
 goldStandardDiagnoses = {'Control\t\t','Migraine without aura','Migraine with aura'};
@@ -90,7 +97,7 @@ for rr = 1:3
     end
 fprintf([outline '\n']);
 end
-
+fprintf('\n\n');
 
 
 %% create a confusion matrix for the MELA subjects
@@ -102,7 +109,7 @@ goldStandardDiagnosis = readtable(goldStandardFileFullPath);
 
 % This is the order of columns in the confusion matrix. Note that we are
 % not including the Migraine with other aura here.
-reOrderedPoemDiagnosisLabels = {'HeadacheFree','MildNonMigrainousHeadache','HeadacheNOS','MigraineWithoutAura','MigraineWithVisualAura'};
+reOrderedPoemDiagnosisLabels = {'HeadacheFree','MildNonMigrainousHeadache','HeadacheNOS','MigraineWithoutAura','MigraineWithVisualAura','MigraineWithOtherAura'};
 
 confusionMatrix = zeros(5,5);
 % loop through the subjects in the diagnosisTable
@@ -133,6 +140,12 @@ for ss = 1:size(diagnosisTable,1)
         initialColumnIdx = find(table2array(diagnosisTable(ss,1:6)),1);
         % Find which column this diagnosis will be placed within
         columnIdx = find( strcmp(reOrderedPoemDiagnosisLabels, diagnosisTable.Properties.VariableNames{initialColumnIdx}) ); 
+        % A HACK -- if either migraine with visual or migraine with other
+        % aura is true, then put a value in for the migraine with any aura
+        % column
+        if columnIdx==5 || columnIdx==6
+            columnIdx=5;
+        end
         if ~isempty(rowIdx)
             confusionMatrix(rowIdx,columnIdx) = confusionMatrix(rowIdx,columnIdx) + 1;
         end
@@ -142,7 +155,7 @@ end
 % print out the confusion matrix
 outline='\t';
 for dd = 1:5
-    outline = [outline '\t' reOrderedPoemDiagnosisLabels{dd} '\t'];
+    outline = [outline '\t' outputPoemDiagnosisLabels{dd} '\t'];
 end
 fprintf([outline '\n']);
 goldStandardDiagnoses = {'Headache free\t\t','Mild non-migrainous headache','Headache NOS\t\t','Migraine without aura\t','Migraine with visual aura'};
