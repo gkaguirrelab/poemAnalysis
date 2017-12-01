@@ -98,72 +98,72 @@ for rr = 1:3
 fprintf([outline '\n']);
 end
 fprintf('\n\n');
-
-
-%% create a confusion matrix for the MELA subjects
-
-% load the study neurologist diagnoses
-goldStandardFile = 'MELA-studyID+diagosis.csv';
-goldStandardFileFullPath = fullfile(dropboxDir, analysisDir, goldStandardFile);
-goldStandardDiagnosis = readtable(goldStandardFileFullPath);
-
-% This is the order of columns in the confusion matrix. Note that we are
-% not including the Migraine with other aura here.
-reOrderedPoemDiagnosisLabels = {'HeadacheFree','MildNonMigrainousHeadache','HeadacheNOS','MigraineWithoutAura','MigraineWithVisualAura','MigraineWithOtherAura'};
-
-confusionMatrix = zeros(5,5);
-% loop through the subjects in the diagnosisTable
-for ss = 1:size(diagnosisTable,1)
-    % get this subject's studyID
-    studyID = diagnosisTable.Row{ss};
-    % see if there is an entry in the gold standard table
-    matchIdx = find(cellfun(@(x) strcmp(studyID,x), goldStandardDiagnosis.SubjectID));
-    % assign a confuion matrix row based upon the gold standard diagnosis
-    if ~isempty(matchIdx)
-        switch goldStandardDiagnosis.Diagnosis{matchIdx}
-            case ''
-                rowIdx = [];
-            case 'Headache free'
-                rowIdx = 1;
-            case 'Mild non-migrainous headache'
-                rowIdx = 2;
-            case 'Headache NOS'
-                rowIdx = 3;
-            case 'Migraine without aura'
-                rowIdx = 4;
-            case 'Migraine with visual aura'
-                rowIdx = 5;
-            otherwise
-                error('I encountered an undefined gold standard diagnosis');
-        end
-        % Identify which poem diagnosis was assigned to this subject
-        initialColumnIdx = find(table2array(diagnosisTable(ss,1:6)),1);
-        % Find which column this diagnosis will be placed within
-        columnIdx = find( strcmp(reOrderedPoemDiagnosisLabels, diagnosisTable.Properties.VariableNames{initialColumnIdx}) ); 
-        % A HACK -- if either migraine with visual or migraine with other
-        % aura is true, then put a value in for the migraine with any aura
-        % column
-        if columnIdx==5 || columnIdx==6
-            columnIdx=5;
-        end
-        if ~isempty(rowIdx)
-            confusionMatrix(rowIdx,columnIdx) = confusionMatrix(rowIdx,columnIdx) + 1;
-        end
-    end
-end
-
-% print out the confusion matrix
-outline='\t';
-for dd = 1:5
-    outline = [outline '\t' outputPoemDiagnosisLabels{dd} '\t'];
-end
-fprintf([outline '\n']);
-goldStandardDiagnoses = {'Headache free\t\t','Mild non-migrainous headache','Headache NOS\t\t','Migraine without aura\t','Migraine with visual aura'};
-for rr = 1:5
-    outline = [goldStandardDiagnoses{rr} '\t'];
-    for cc = 1:5
-        outline = [outline num2str(confusionMatrix(rr,cc)) '\t\t'];
-    end
-fprintf([outline '\n']);
-end
+% 
+% 
+% %% create a confusion matrix for the MELA subjects
+% 
+% % load the study neurologist diagnoses
+% goldStandardFile = 'MELA-studyID+diagosis.csv';
+% goldStandardFileFullPath = fullfile(dropboxDir, analysisDir, goldStandardFile);
+% goldStandardDiagnosis = readtable(goldStandardFileFullPath);
+% 
+% % This is the order of columns in the confusion matrix. Note that we are
+% % not including the Migraine with other aura here.
+% reOrderedPoemDiagnosisLabels = {'HeadacheFree','MildNonMigrainousHeadache','HeadacheNOS','MigraineWithoutAura','MigraineWithVisualAura','MigraineWithOtherAura'};
+% 
+% confusionMatrix = zeros(5,5);
+% % loop through the subjects in the diagnosisTable
+% for ss = 1:size(diagnosisTable,1)
+%     % get this subject's studyID
+%     studyID = diagnosisTable.Row{ss};
+%     % see if there is an entry in the gold standard table
+%     matchIdx = find(cellfun(@(x) strcmp(studyID,x), goldStandardDiagnosis.SubjectID));
+%     % assign a confuion matrix row based upon the gold standard diagnosis
+%     if ~isempty(matchIdx)
+%         switch goldStandardDiagnosis.Diagnosis{matchIdx}
+%             case ''
+%                 rowIdx = [];
+%             case 'Headache free'
+%                 rowIdx = 1;
+%             case 'Mild non-migrainous headache'
+%                 rowIdx = 2;
+%             case 'Headache NOS'
+%                 rowIdx = 3;
+%             case 'Migraine without aura'
+%                 rowIdx = 4;
+%             case 'Migraine with visual aura'
+%                 rowIdx = 5;
+%             otherwise
+%                 error('I encountered an undefined gold standard diagnosis');
+%         end
+%         % Identify which poem diagnosis was assigned to this subject
+%         initialColumnIdx = find(table2array(diagnosisTable(ss,1:6)),1);
+%         % Find which column this diagnosis will be placed within
+%         columnIdx = find( strcmp(reOrderedPoemDiagnosisLabels, diagnosisTable.Properties.VariableNames{initialColumnIdx}) ); 
+%         % A HACK -- if either migraine with visual or migraine with other
+%         % aura is true, then put a value in for the migraine with any aura
+%         % column
+%         if columnIdx==5 || columnIdx==6
+%             columnIdx=5;
+%         end
+%         if ~isempty(rowIdx)
+%             confusionMatrix(rowIdx,columnIdx) = confusionMatrix(rowIdx,columnIdx) + 1;
+%         end
+%     end
+% end
+% 
+% % print out the confusion matrix
+% outline='\t';
+% for dd = 1:5
+%     outline = [outline '\t' outputPoemDiagnosisLabels{dd} '\t'];
+% end
+% fprintf([outline '\n']);
+% goldStandardDiagnoses = {'Headache free\t\t','Mild non-migrainous headache','Headache NOS\t\t','Migraine without aura\t','Migraine with visual aura'};
+% for rr = 1:5
+%     outline = [goldStandardDiagnoses{rr} '\t'];
+%     for cc = 1:5
+%         outline = [outline num2str(confusionMatrix(rr,cc)) '\t\t'];
+%     end
+% fprintf([outline '\n']);
+% end
 
