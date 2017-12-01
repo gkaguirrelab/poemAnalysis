@@ -17,15 +17,14 @@
 		"hook": "",
 		"importance": "",
 		"localHookTemplate": "",
-		"name": "Psychtoolbox-3",
+		"name": "kappa",
 		"pathPlacement": "append",
-		"subfolder": ["Psychtoolbox\/PsychOneliners"],
+		"subfolder": "",
 		"toolboxRoot": "",
-		"type": "git",
+		"type": "webget",
 		"update": "",
-		"url": "https:\/\/github.com\/Psychtoolbox-3\/Psychtoolbox-3.git"
+		"url": "https:\/\/www.mathworks.com\/matlabcentral\/mlc-downloads\/downloads\/submissions\/15365\/versions\/4\/download\/zip"
 	}
-
 ]
 
 
