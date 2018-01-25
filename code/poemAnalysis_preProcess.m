@@ -1,15 +1,25 @@
 function [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName, varargin)
-% function [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName)
+% Cleans and organizes data from a raw POEM responses spreadsheet
 %
-%  Loads csv file into which Qualtrics migraine assessment data has been
-%  stored. Cleans and organizes the data
+% Syntax:
+%  [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName)
+%
+% Description:
+%   Loads csv file into which Qualtrics migraine assessment data has been
+%   stored. Cleans and organizes the data
 %
 % Inputs:
-%   spreadSheetName: String variable with the full path to the csv file
+%   spreadSheetName       - String variable with the full path to the csv file
+%
+% Optional key/value pairs:
+%   retainDuplicateSubjectIDs - Flag that controls how dupicate subject IDs
+%                           should be handled. If set to false, only the
+%                           most recent (by date) response for this subject
+%                           ID will be retained.
 %
 % Outputs:
-%   T: The table
-%   notesText: A cell array with notes regarding the table conversion
+%   T                     - The table
+%   notesText             - A cell array with notes regarding the table conversion
 %
 
 %% Parse input and define variables
@@ -28,17 +38,18 @@ p.parse(spreadSheetName,varargin{:})
 %% Hardcoded variables and housekeeping
 notesText=cellstr(spreadSheetName);
 
-subjectIDVarieties={'ExternalReference'};
+subjectIDQuestionText={'External Data Reference'};
 subjectIDLabel='SubjectID';
+emailAddressQuestionText = {'Please provide an email address at which we can contact you.'};
 
 % This is the format of time stamps returned by Qualtrics
 dateTimeFormatA='yyyy-MM-dd HH:mm:SS';
 dateTimeFormatB='MM/dd/yy HH:mm';
 
 %% Read in the table. Suppress some routine warnings.
-warnID='MATLAB:table:ModifiedVarnames';
 orig_state = warning;
-warning('off',warnID);
+warning('off','MATLAB:table:ModifiedAndSavedVarnames');
+warning('off','MATLAB:table:ModifiedVarnames');
 T=readtable(spreadSheetName,'DatetimeType','text');
 warning(orig_state);
 
@@ -53,10 +64,29 @@ T=rmmissing(T,'MinNumMissing',size(T,2));
 T=rmmissing(T,2,'MinNumMissing',size(T,1));
 
 % Identify the column with the Subject ID, and standardize the label
-for ii=1:length(T.Properties.VariableNames)
-    idx=find(strcmp(subjectIDVarieties,T.Properties.VariableNames{ii}));
+for ii=1:length(T.Properties.UserData.QuestionText)
+    idx=find(strcmp(subjectIDQuestionText,T.Properties.UserData.QuestionText{ii}));
     if ~isempty(idx)
         T.Properties.VariableNames{ii}=subjectIDLabel;
+        subjectIDColumnIdx = ii;
+    end
+end
+
+% If there is a email address field, then we are dealing with a survey version of
+% the POEM (i.e., v1.Xs). In this case, the email address field should be
+% used as the subject ID. We copy over the email and over-write the
+% contents of the external reference field, which should be empty
+for ii=1:length(T.Properties.UserData.QuestionText)
+    idx=find(strcmp(emailAddressQuestionText,T.Properties.UserData.QuestionText{ii}));
+    if ~isempty(idx)
+        % Test to make sure that the current entries in the subject ID
+        % column are indeed empty
+        emptyTest = cellfun(@(x) isempty(x),T{3:end,subjectIDColumnIdx});
+        if any(~emptyTest)
+            error('This datasheet has entries in both the external data reference and email address columns');
+        end
+        T(3:end,subjectIDColumnIdx)=T(3:end,ii);
+        emailAddressColumnIdx = ii;
     end
 end
 
@@ -87,9 +117,9 @@ if ~isempty(duplicateSubjectIDsIdx)
     if p.Results.retainDuplicateSubjectIDs
         for ii=1:length(duplicateSubjectIDsIdx)
             SubjectIDText=uniqueSubjectIDs{duplicateSubjectIDsIdx(ii)};
-            idx=find(strcmp(T.SubjectID,SubjectIDText));
-            for jj=1:length(idx)
-                T.SubjectID{idx(jj)}=[T.SubjectID{idx(jj)} '_' char(48+jj)];
+            subjectIDColumn=find(strcmp(T.SubjectID,SubjectIDText));
+            for jj=1:length(subjectIDColumn)
+                T.SubjectID{subjectIDColumn(jj)}=[T.SubjectID{subjectIDColumn(jj)} '_' char(48+jj)];
             end
         end
         
@@ -102,8 +132,8 @@ if ~isempty(duplicateSubjectIDsIdx)
     else
         for ii=1:length(duplicateSubjectIDsIdx)
             SubjectIDText=uniqueSubjectIDs{duplicateSubjectIDsIdx(ii)};
-            idx=find(strcmp(T.SubjectID,SubjectIDText));
-            idxToKeep = ((1:1:size(T,1)) ~= idx(1));
+            subjectIDColumn=find(strcmp(T.SubjectID,SubjectIDText));
+            idxToKeep = ((1:1:size(T,1)) ~= subjectIDColumn(1));
             T = T(idxToKeep,:);
         end
     end
@@ -115,10 +145,10 @@ T.Properties.RowNames=T.SubjectID;
 % Convert the timestamps to datetime format
 timeStampLabels={'StartDate','EndDate'};
 for ii=1:length(timeStampLabels)
-    idx=find(strcmp(T.Properties.VariableNames,timeStampLabels{ii}));
-    if ~isempty(idx)
-        columnHeader = T.Properties.VariableNames(idx(1));
-        cellTextTimetamp=table2cell(T(:,idx(1)));
+    subjectIDColumn=find(strcmp(T.Properties.VariableNames,timeStampLabels{ii}));
+    if ~isempty(subjectIDColumn)
+        columnHeader = T.Properties.VariableNames(subjectIDColumn(1));
+        cellTextTimetamp=table2cell(T(:,subjectIDColumn(1)));
         % Not sure what the format is of the date time string. Try one. If
         % error try the other. I am aware that this is an ugly hack.
         try
@@ -128,16 +158,16 @@ for ii=1:length(timeStampLabels)
         end
         tableDatetime.Properties.VariableNames{1}=columnHeader{1};
         tableDatetime.Properties.RowNames=T.SubjectID;
-        switch idx(1)
+        switch subjectIDColumn(1)
             case 1
-                subTableRight=T(:,idx(1)+1:end);
+                subTableRight=T(:,subjectIDColumn(1)+1:end);
                 T=[tableDatetime subTableRight];
             case size(T,2)
-                subTableLeft=T(:,1:idx(1)-1);
+                subTableLeft=T(:,1:subjectIDColumn(1)-1);
                 T=[subTableLeft tableDatetime];
             otherwise
-                subTableLeft=T(:,1:idx(1)-1);
-                subTableRight=T(:,idx(1)+1:end);
+                subTableLeft=T(:,1:subjectIDColumn(1)-1);
+                subTableRight=T(:,subjectIDColumn(1)+1:end);
                 T=[subTableLeft tableDatetime subTableRight];
         end % switch
     end
