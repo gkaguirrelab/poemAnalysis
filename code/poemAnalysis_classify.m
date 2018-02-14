@@ -57,6 +57,7 @@ for thisSubject = 1:numSubjects
         'Have you ever seen any spots, stars, lines, flashing lights, zigzag lines, or heat waves around the time of your headaches?',...
         'Have you experienced these visual phenomena with your headaches two or more times in your life?'};
     diagnosticResponses={'Yes','Yes','Yes','Yes'};
+    clear diagnosticAnswerTest
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryQuestions);
@@ -87,6 +88,7 @@ for thisSubject = 1:numSubjects
         'Do these visual phenomena ever last 5-60 minutes?'};
     diagnosticResponses={'5 min to 1 hour','Yes'};
     diagnosticNumberNeeded=[1,1];
+    
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, orQuestions);
     
@@ -97,10 +99,11 @@ for thisSubject = 1:numSubjects
         % Loop through the orQuestions
         testFlags = false(length(questionColumnIdx),1);
         for qq=1:length(questionColumnIdx)
+            clear diagnosticAnswerTest
             % Get the answer string for this question
             answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
             % Test if the answer string contains a diagnostic answers
-            diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticResponses(qq,:));
+            diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticResponses(:,qq));
             if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithVisualAuraFlag(thisSubject)
                 testFlags(qq)=true;
             end % symptom inventory test
@@ -126,6 +129,7 @@ for thisSubject = 1:numSubjects
     multiCriterionQuestions={'When do you see these visual phenomena in relation to your headache? Please mark all that apply.'};
     diagnosticNumberNeeded=[1];
     clear diagnosticAnswers
+    clear diagnosticAnswerTest
     diagnosticAnswers(1,:) = {'Before the headache'};
     
     % Test if there is a column in the table for each question
@@ -218,6 +222,7 @@ for thisSubject = 1:numSubjects
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
         % Loop through the diagnostic questions
         for qq=1:length(questionColumnIdx)
+            clear diagnosticAnswerTest
             % Get the answer string for this question
             answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
             % Test if the answer string contains enough diagnostic answers
@@ -243,6 +248,8 @@ for thisSubject = 1:numSubjects
         'Do these phenomena ever last 5-60 minutes?'};
     diagnosticResponses={'5 min to 1 hour','Yes'};
     diagnosticNumberNeeded=[1,1];
+    clear diagnosticAnswerTest
+
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, orQuestions);
     
@@ -256,7 +263,7 @@ for thisSubject = 1:numSubjects
             % Get the answer string for this question
             answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
             % Test if the answer string contains a diagnostic answers
-            diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticResponses(qq,:));
+            diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticResponses(:,qq));
             if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithOtherAuraFlag(thisSubject)
                 testFlags(qq)=true;
             end % symptom inventory test
@@ -293,7 +300,8 @@ for thisSubject = 1:numSubjects
             'Do your headaches ever last more than 4 hours?',...
             'Have you had this headache 5 or more times in your life?'};
         diagnosticResponses={'Yes','Yes','Yes','Yes'};
-        
+        clear diagnosticAnswerTest
+    
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryQuestions);
         
@@ -322,6 +330,7 @@ for thisSubject = 1:numSubjects
             'During your headaches that are longer than 4 hours, do you ever experience the following symptoms? Please mark all that apply.'};
         diagnosticNumberNeeded=[2,1];
         clear diagnosticAnswers
+        clear diagnosticAnswerTest
         diagnosticAnswers(1,:) = {'The pain is worse on one side',...
             'The pain is pounding, pulsating, or throbbing',...
             'The pain is moderate or severe in intensity',...
@@ -374,6 +383,7 @@ for thisSubject = 1:numSubjects
         'Have you ever had a headache that was NOT caused by a head injury, hangover, or an illness such as the cold or the flu?',...
         'Have you ever had episodes of discomfort, pressure, or pain around your eyes or sinuses?'};
     clear diagnosticResponses
+    clear diagnosticAnswerTest
     diagnosticResponses(1,:) = {'No','' ,'No','' ,'No'};
     diagnosticResponses(2,:) = {'No','' ,'Yes','No','No'};
     diagnosticResponses(3,:) = {'Yes','No','', '' ,'No'};
