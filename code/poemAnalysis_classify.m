@@ -42,7 +42,7 @@ ageIdx = find(strcmp(T.Properties.UserData.QuestionText,'What is your age (in ye
 if isempty(ageIdx)
     age = nan(numSubjects, 1);
 else
-    age = str2num(cell2mat(table2array(T(:,ageIdx))));
+    age = cellfun(@(x) str2num(x),table2array(T(:,ageIdx)));
 end
 
 for thisSubject = 1:numSubjects

@@ -41,6 +41,7 @@ notesText=cellstr(spreadSheetName);
 subjectIDQuestionText={'External Data Reference'};
 subjectIDLabel='SubjectID';
 emailAddressQuestionText = {'Please provide an email address at which we can contact you.'};
+responseIDQuestionText = {'Response ID'};
 
 % This is the format of time stamps returned by Qualtrics
 dateTimeFormatA='yyyy-MM-dd HH:mm:SS';
@@ -87,6 +88,18 @@ for ii=1:length(T.Properties.UserData.QuestionText)
         end
         T(3:end,subjectIDColumnIdx)=T(3:end,ii);
         emailAddressColumnIdx = ii;
+    end
+end
+
+% Detect if we are dealing with a table of simulated survey responses. If
+% so, every email address is the same, so we use the Response ID instead of
+% the email address.
+if all(strcmp('testemail@qemailserver.com',table2array(T(3:end,subjectIDColumnIdx))))
+    for ii=1:length(T.Properties.UserData.QuestionText)
+        idx=find(strcmp(responseIDQuestionText,T.Properties.UserData.QuestionText{ii}));
+        if ~isempty(idx)
+            T(3:end,subjectIDColumnIdx)=T(3:end,ii);
+        end
     end
 end
 
