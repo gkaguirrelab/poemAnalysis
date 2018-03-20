@@ -14,6 +14,7 @@ diagnoses={'MigraineWithoutAura',...
     'MildNonMigrainousHeadache',...
     'HeadacheNOS',...
     'ChoiIctalPhotophobiaScore',...
+    'InterictalPhotophobia',...
     'ChildhoodMotionSickness',...
     'FamHxOfHeadache',...
     'Age',...
@@ -32,6 +33,8 @@ MildNonMigrainousHeadacheFlag=true(numSubjects, 1);
 HeadacheNOSFlag=true(numSubjects, 1);
 % The Choi questions are a score; default to nan
 ChoiIctalPhotohobiaScore=nan(numSubjects, 1);
+% A variable to hold the response to this question from Choi
+InterictalPhotophobia=false(numSubjects, 1);
 % Copy over and save age if available
 ageIdx = find(strcmp(T.Properties.UserData.QuestionText,'What is your age (in years)?'));
 if isempty(ageIdx)
@@ -138,7 +141,7 @@ for thisSubject = 1:numSubjects
     %       3) multiple choice radio button, with two diagnostic answers:
     %          report aura duration between 5 and 60 min or longer than 60
     %          minutes. The >60 minute answer is acceptable as it is one
-    %          can meet criteria by having two types of aura that are 
+    %          can meet criteria by having two types of aura that are
     %          sequential and together last more than 60 minutes.
     
     % Define the binary questions and the diagnostic responses
@@ -179,7 +182,7 @@ for thisSubject = 1:numSubjects
     diagnosticAnswers(1,:) = {'Before the headache','',''};
     diagnosticAnswers(2,:) = {'Numbness or tingling of your body or face','Weakness of your arm, leg, face, or half of your body','Difficulty speaking'};
     diagnosticAnswers(3,:) = {'5 min to 1 hour','More than 1 hour',''};
-        
+    
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
     
@@ -207,7 +210,7 @@ for thisSubject = 1:numSubjects
         % questions. If this is the case, mark the diagnosis as false.
         MigraineWithOtherAuraFlag(thisSubject) = false;
     end
-
+    
     
     %% Migrane without aura
     % To qualify for migraine without aura, the candidate must not have
@@ -439,7 +442,7 @@ for thisSubject = 1:numSubjects
         HeadacheNOSFlag(thisSubject) = false;
         MildNonMigrainousHeadacheFlag(thisSubject) = false;
     end
-
+    
     
     %% Choi photophobia questions
     % The Choi (2009) survey consists of seven questions that assess
@@ -480,6 +483,34 @@ for thisSubject = 1:numSubjects
         ChoiIctalPhotohobiaScore(thisSubject) = nan;
     end
 
+    
+    %% Interictal photophobia
+    binaryCriterionQuestions={'Do you have any of the above symptoms even during your headache-free interval?'};
+    clear diagnosticResponses
+    diagnosticResponses={'Yes'};
+    emptyResponses={''};
+    
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryCriterionQuestions);
+    
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if any of these columns are empty. If so, this subject has
+        % not completed the Choi survey and is assigned a false value
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            InterictalPhotophobia(thisSubject) = false;
+        else
+            InterictalPhotophobia(thisSubject) = true;
+        end % binary test
+    else
+        % If no subject has gone answered the Choi survey questions, then
+        % one or more columns in the table may not be present for these
+        % questions. If this is the case, mark value as false.
+        InterictalPhotophobia(thisSubject) = false;
+    end
+    
     
     %% History of childhood motion sickness
     % The subject answers this if they did not go down a migraine path
@@ -584,6 +615,7 @@ diagnosisTable=table(MigraineWithoutAuraFlag, ...
     MildNonMigrainousHeadacheFlag, ...
     HeadacheNOSFlag, ...
     ChoiIctalPhotohobiaScore, ...
+    InterictalPhotophobia, ...
     ChildhoodMotionSickness, ...
     FamHxOfHeadache, ...
     Age, ...
