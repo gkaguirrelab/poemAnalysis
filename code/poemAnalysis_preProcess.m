@@ -73,10 +73,10 @@ for ii=1:length(T.Properties.UserData.QuestionText)
     end
 end
 
-% If there is a email address field, then we are dealing with a survey version of
-% the POEM (i.e., v1.Xs). In this case, the email address field should be
-% used as the subject ID. We copy over the email and over-write the
-% contents of the external reference field, which should be empty
+% If there is an email address field, then we are dealing with a survey
+% version of the POEM (i.e., v1.Xs). In this case, the email address field
+% should be used as the subject ID. We copy over the email and over-write
+% the contents of the external reference field, which should be empty
 for ii=1:length(T.Properties.UserData.QuestionText)
     idx=find(strcmp(emailAddressQuestionText,T.Properties.UserData.QuestionText{ii}));
     if ~isempty(idx)
