@@ -18,6 +18,8 @@ diagnoses={'MigraineWithoutAura',...
     'ChildhoodMotionSickness',...
     'FamHxOfHeadache',...
     'Age',...
+    'RecencyMigraine',...
+    'RecencyAura',...
     'SeriousnessQuestion'};
 
 % Pull the QuestionText out of the table properties
@@ -43,9 +45,11 @@ else
     Age = cellfun(@(x) str2num(x),table2array(T(:,ageIdx)));
 end
 % These next set of data columns contain the strings copied over from the
-% anser ttext, and default to empty.
+% answer text, and default to empty.
 ChildhoodMotionSickness = cell(numSubjects, 1);
 FamHxOfHeadache = cell(numSubjects, 1);
+RecencyMigraine = cell(numSubjects, 1);
+RecencyAura = cell(numSubjects, 1);
 SeriousnessQuestion = cell(numSubjects, 1);
 
 for thisSubject = 1:numSubjects
@@ -573,6 +577,65 @@ for thisSubject = 1:numSubjects
         FamHxOfHeadache(thisSubject) = {''};
     end
     
+    %% Headache recency
+    
+    binaryCriterionQuestions={'When is the last time you had one of these headaches?'};
+    emptyResponses={''};
+    
+    % Test if there is a single column in the table for this question
+    questionExist = sum(strcmp(QuestionText,binaryCriterionQuestions{1}))==1;
+    
+    % QuestionExist will all be true of a column was found for each question
+    if questionExist
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if this column is empty. If so, this subject has
+        % not completed the family history question (which should never
+        % happen)
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            RecencyMigraine(thisSubject) = {''};
+        else
+            % Copy over the response string
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+            RecencyMigraine(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+        end % binary test
+    else
+        % If no subject has answered the headache recency question, then
+        % make sure that all entries continue to be empty
+        RecencyMigraine(thisSubject) = {''};
+    end
+
+    
+    %% Aura recency
+    
+    binaryCriterionQuestions={'When is the last time you experienced these visual phenomena?'};
+    emptyResponses={''};
+    
+    % Test if there is a single column in the table for this question
+    questionExist = sum(strcmp(QuestionText,binaryCriterionQuestions{1}))==1;
+    
+    % QuestionExist will all be true of a column was found for each question
+    if questionExist
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if this column is empty. If so, this subject has
+        % not completed the family history question (which should never
+        % happen)
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            RecencyAura(thisSubject) = {''};
+        else
+            % Copy over the response string
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+            RecencyAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+        end % binary test
+    else
+        % If no subject has answered the headache recency question, then
+        % make sure that all entries continue to be empty
+        RecencyAura(thisSubject) = {''};
+    end
+    
     
     %% Question regarding errors or seriousness
     % What was the response?
@@ -619,6 +682,8 @@ diagnosisTable=table(MigraineWithoutAuraFlag, ...
     ChildhoodMotionSickness, ...
     FamHxOfHeadache, ...
     Age, ...
+    RecencyMigraine, ...
+    RecencyAura, ...
     SeriousnessQuestion);
 diagnosisTable.Properties.VariableNames=diagnoses;
 diagnosisTable.Properties.RowNames=T.Properties.RowNames;
