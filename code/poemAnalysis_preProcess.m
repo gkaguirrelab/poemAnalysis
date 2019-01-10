@@ -29,7 +29,7 @@ p = inputParser;
 p.addRequired('spreadSheetName',@ischar);
 
 % Optional analysis params
-p.addParameter('retainDuplicateSubjectIDs',false,@islogical);
+p.addParameter('retainDuplicateSubjectIDs',true,@islogical);
 
 % parse
 p.parse(spreadSheetName,varargin{:})
@@ -121,18 +121,18 @@ T=T(idxTrueFinishedStatus,:);
 % that subject.
 uniqueSubjectIDs=unique(T.SubjectID);
 k=cellfun(@(x) find(strcmp(T.SubjectID, x)==1), unique(T.SubjectID), 'UniformOutput', false);
-duplicateSubjectIDsIdx=find(cellfun(@(x) x==2,cellfun(@(x) size(x,1),k,'UniformOutput', false)));
+replicateSubjectIDsIdx=find(cellfun(@(x) x>1,cellfun(@(x) size(x,1),k,'UniformOutput', false)));
 
 % We have detected duplicates. What should we do?
-if ~isempty(duplicateSubjectIDsIdx)
+if ~isempty(replicateSubjectIDsIdx)
     
     % Append index numbers to render duplicated subject IDs unique
     if p.Results.retainDuplicateSubjectIDs
-        for ii=1:length(duplicateSubjectIDsIdx)
-            SubjectIDText=uniqueSubjectIDs{duplicateSubjectIDsIdx(ii)};
+        for ii=1:length(replicateSubjectIDsIdx)
+            SubjectIDText=uniqueSubjectIDs{replicateSubjectIDsIdx(ii)};
             subjectIDColumn=find(strcmp(T.SubjectID,SubjectIDText));
             for jj=1:length(subjectIDColumn)
-                T.SubjectID{subjectIDColumn(jj)}=[T.SubjectID{subjectIDColumn(jj)} '_' char(48+jj)];
+                T.SubjectID{subjectIDColumn(jj)}=[T.SubjectID{subjectIDColumn(jj)} '___' char(48+jj)];
             end
         end
         
@@ -143,8 +143,8 @@ if ~isempty(duplicateSubjectIDsIdx)
     % THIS.
     
     else
-        for ii=1:length(duplicateSubjectIDsIdx)
-            SubjectIDText=uniqueSubjectIDs{duplicateSubjectIDsIdx(ii)};
+        for ii=1:length(replicateSubjectIDsIdx)
+            SubjectIDText=uniqueSubjectIDs{replicateSubjectIDsIdx(ii)};
             subjectIDColumn=find(strcmp(T.SubjectID,SubjectIDText));
             idxToKeep = ((1:1:size(T,1)) ~= subjectIDColumn(1));
             T = T(idxToKeep,:);
