@@ -17,11 +17,14 @@
 clear variables
 close all
 
+numColumns = input('How many data columns are present? (press enter to attempt to guess from file)');
+formatString = repmat('%q',1,numColumns');
+
 %% Select the csv file to process
 [rawFileName,rawFilePath] = uigetfile('*.csv');
 
 %% load and pre-process thisDataSheet, returning table "T"
-[T, notesText] = poemAnalysis_preProcess(fullfile(rawFilePath,rawFileName));
+[T, notesText] = poemAnalysis_preProcess(fullfile(rawFilePath,rawFileName),'formatString',formatString);
 
 %% classify headache based upon table T
 diagnosisTable = poemAnalysis_classify( T );
