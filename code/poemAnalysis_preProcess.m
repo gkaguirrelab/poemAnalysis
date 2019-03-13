@@ -30,6 +30,7 @@ p.addRequired('spreadSheetName',@ischar);
 
 % Optional analysis params
 p.addParameter('retainDuplicateSubjectIDs',true,@islogical);
+p.addParameter('formatString','',@(x)(isempty(x) | ischar(x)));
 
 % parse
 p.parse(spreadSheetName,varargin{:})
@@ -51,7 +52,11 @@ dateTimeFormatB='MM/dd/yy HH:mm';
 orig_state = warning;
 warning('off','MATLAB:table:ModifiedAndSavedVarnames');
 warning('off','MATLAB:table:ModifiedVarnames');
-T=readtable(spreadSheetName,'DatetimeType','text');
+if isempty(p.Results.formatString)
+    T=readtable(spreadSheetName,'DatetimeType','text');
+else
+    T=readtable(spreadSheetName,'DatetimeType','text','Format',p.Results.formatString);
+end
 warning(orig_state);
 
 %% Stick the question text into the UserData field of the Table
@@ -77,6 +82,7 @@ end
 % version of the POEM (i.e., v1.Xs). In this case, the email address field
 % should be used as the subject ID. We copy over the email and over-write
 % the contents of the external reference field, which should be empty
+emailAddressColumnIdx = [];
 for ii=1:length(T.Properties.UserData.QuestionText)
     idx=find(strcmp(emailAddressQuestionText,T.Properties.UserData.QuestionText{ii}));
     if ~isempty(idx)
@@ -92,13 +98,22 @@ for ii=1:length(T.Properties.UserData.QuestionText)
 end
 
 % Detect if we are dealing with a table of simulated survey responses. If
-% so, every email address is the same, so we use the Response ID instead of
-% the email address.
-if all(strcmp('testemail@qemailserver.com',table2array(T(3:end,subjectIDColumnIdx))))
+% so, every email address is the same, so set the emailAddressColumnIdx
+% back to empty.
+if ~isempty(emailAddressColumnIdx)
+    if all(strcmp('testemail@qemailserver.com',table2array(T(3:end,subjectIDColumnIdx))))
+        emailAddressColumnIdx = [];
+    end
+end
+
+% At this stage we do not have a defined subject ID based upon email
+% address, so we use Response ID instead
+if isempty(emailAddressColumnIdx)
     for ii=1:length(T.Properties.UserData.QuestionText)
         idx=find(strcmp(responseIDQuestionText,T.Properties.UserData.QuestionText{ii}));
         if ~isempty(idx)
-            T(3:end,subjectIDColumnIdx)=T(3:end,ii);
+            subjectIDColumnIdx = ii;
+            T.SubjectID = table2cell(T(:,subjectIDColumnIdx));
         end
     end
 end
