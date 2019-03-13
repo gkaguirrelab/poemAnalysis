@@ -1,4 +1,4 @@
-function [diagnosisTable] = qualtricsAnalysis_classifyHeadache( T )
+function [diagnosisTable] = poemAnalysis_classify( T )
 %
 % This function takes the table variable "T" and performs a decision tree
 % analysis to classify each subject into headache categories.

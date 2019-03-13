@@ -1,4 +1,4 @@
-function [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName, varargin)
+function [T, notesText] = poemAnalysis_preProcess(spreadSheetName, varargin)
 % Cleans and organizes data from a raw POEM responses spreadsheet
 %
 % Syntax:
