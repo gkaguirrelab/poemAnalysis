@@ -42,7 +42,10 @@ ageIdx = find(strcmp(T.Properties.UserData.QuestionText,'What is your age (in ye
 if isempty(ageIdx)
     Age = nan(numSubjects, 1);
 else
-    Age = cellfun(@(x) str2num(x),table2array(T(:,ageIdx)));
+    Age = nan(numSubjects, 1);
+    notEmptyIdx= cellfun(@(x) ~isempty(x),table2array(T(:,ageIdx)));
+    notEmptyAges = cellfun(@(x) str2num(x),table2array(T(notEmptyIdx,ageIdx)));
+    Age(notEmptyIdx) = notEmptyAges;
 end
 % These next set of data columns contain the strings copied over from the
 % answer text, and default to empty.
