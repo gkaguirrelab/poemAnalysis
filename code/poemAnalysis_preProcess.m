@@ -126,7 +126,7 @@ idxNotEmptySubjectIDs=cellfun(@(x) ~strcmp(x,''), T.SubjectID);
 T=T(idxNotEmptySubjectIDs,:);
 
 % Remove rows for which "Finished" is False
-idxTrueFinishedStatus=cellfun(@(x) ~strcmp(x,'FALSE'), T.Finished);
+idxTrueFinishedStatus=cellfun(@(x) ~strcmpi(x,'FALSE'), T.Finished);
 T=T(idxTrueFinishedStatus,:);
 
 % Check for duplicate subject ID names. There are two choices as to how to
