@@ -31,6 +31,5 @@ diagnosisTable = poemAnalysis_classify( T );
 
 %% Select the location to write
 [saveFileName,saveFilePath] = uiputfile('*.xlsx');
-
 writetable(diagnosisTable,fullfile(saveFilePath,saveFileName),'Range','A4','WriteRowNames',true)
 
