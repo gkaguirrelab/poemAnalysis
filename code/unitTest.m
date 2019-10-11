@@ -29,5 +29,17 @@ else
     dataLoad = load(diagnosisPathMat);
     cachedDiagnosisTable = dataLoad.diagnosisTable;
     % Are the cached and current tables identical? Throw an error if not.
-    assert(isequaln(cachedDiagnosisTable,diagnosisTable))
+    for ii=1:size(cachedDiagnosisTable,2)
+        testResult = isequaln(diagnosisTable(:,ii),cachedDiagnosisTable(:,ii));
+        if ~testResult
+            errorText = ['The cached and new diagnosis table differ in column ' num2str(ii)];
+            error(errorText);
+        end
+    end
 end
+
+% This command can be used to replace the cachedDiagnosisTable with the
+% current diagnosis table:    
+%{
+    save(diagnosisPathMat,'diagnosisTable');
+%}
