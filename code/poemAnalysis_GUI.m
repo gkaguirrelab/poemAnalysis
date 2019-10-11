@@ -17,19 +17,26 @@
 clear variables
 close all
 
-numColumns = input('How many data columns are present? (press enter to attempt to guess from file)');
-formatString = repmat('%q',1,numColumns');
+
 
 %% Select the csv file to process
-[rawFileName,rawFilePath] = uigetfile('*.csv');
+[rawFileName,rawFilePath] = uigetfile('*.csv','Select a Qualtrics csv file');
+
+
+%% Figure out the number of columns
+numColumns = size(readmatrix(fullfile(rawFilePath,rawFileName)),2);
+formatString = repmat('%q',1,numColumns');
+
 
 %% load and pre-process thisDataSheet, returning table "T"
 [T, notesText] = poemAnalysis_preProcess(fullfile(rawFilePath,rawFileName),'formatString',formatString);
 
+
 %% classify headache based upon table T
 diagnosisTable = poemAnalysis_classify( T );
 
+
 %% Select the location to write
-[saveFileName,saveFilePath] = uiputfile('*.xlsx');
+[saveFileName,saveFilePath] = uiputfile('*.xlsx','Location to save diagnosis table',fullfile(rawFilePath,'diagnosisTable.xlsx'));
 writetable(diagnosisTable,fullfile(saveFilePath,saveFileName),'Range','A4','WriteRowNames',true)
 
