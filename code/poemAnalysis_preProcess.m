@@ -41,7 +41,7 @@ notesText=cellstr(spreadSheetName);
 
 subjectIDQuestionText={'External Data Reference'};
 subjectIDLabel='SubjectID';
-emailAddressQuestionText = {'Please provide an email address at which we can contact you.'};
+emailAddressQuestionText = {'Please provide an email address at which we can contact you.','Please enter a contact email address:','Recipient Email'};
 responseIDQuestionText = {'Response ID'};
 
 % This is the format of time stamps returned by Qualtrics
@@ -81,19 +81,20 @@ end
 % If there is an email address field, then we are dealing with a survey
 % version of the POEM (i.e., v1.Xs). In this case, the email address field
 % should be used as the subject ID. We copy over the email and over-write
-% the contents of the external reference field, which should be empty
+% the contents of the external reference field, which should be empty. The
+% order of preference in setting the subject ID is that explicit subject ID
+% declaration takes precedence over email address
 emailAddressColumnIdx = [];
 for ii=1:length(T.Properties.UserData.QuestionText)
     idx=find(strcmp(emailAddressQuestionText,T.Properties.UserData.QuestionText{ii}));
     if ~isempty(idx)
         % Test to make sure that the current entries in the subject ID
         % column are indeed empty
-        emptyTest = cellfun(@(x) isempty(x),T{3:end,subjectIDColumnIdx});
-        if any(~emptyTest)
-            error('This datasheet has entries in both the external data reference and email address columns');
+        emptyIdx = cellfun(@(x) isempty(x),T{3:end,subjectIDColumnIdx});
+        if any(emptyIdx)
+            T(find(emptyIdx)+2,subjectIDColumnIdx)=T(find(emptyIdx)+2,ii);
+            emailAddressColumnIdx = ii;
         end
-        T(3:end,subjectIDColumnIdx)=T(3:end,ii);
-        emailAddressColumnIdx = ii;
     end
 end
 
@@ -106,15 +107,13 @@ if ~isempty(emailAddressColumnIdx)
     end
 end
 
-% At this stage we do not have a defined subject ID based upon email
-% address, so we use Response ID instead
-if isempty(emailAddressColumnIdx)
-    for ii=1:length(T.Properties.UserData.QuestionText)
-        idx=find(strcmp(responseIDQuestionText,T.Properties.UserData.QuestionText{ii}));
-        if ~isempty(idx)
-            subjectIDColumnIdx = ii;
-            T.SubjectID = table2cell(T(:,subjectIDColumnIdx));
-        end
+% At this stage if we still do not have a defined subject ID, we use
+% Response ID instead
+emptyIdx = cellfun(@(x) isempty(x),T{3:end,subjectIDColumnIdx});
+if any(emptyIdx)
+    idx=find(strcmp(T.Properties.UserData.QuestionText,responseIDQuestionText));
+    if ~isempty(idx)
+        T(find(emptyIdx)+2,subjectIDColumnIdx)=T(find(emptyIdx)+2,idx);
     end
 end
 
