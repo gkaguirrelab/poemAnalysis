@@ -506,10 +506,13 @@ for thisSubject = 1:numSubjects
         % Test if any of these columns are empty. If so, this subject has
         % not completed the Choi survey and is assigned a false value
         emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        diagnosticTrue = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
         if any(emptyAnswerTest)
             InterictalPhotophobia(thisSubject) = false;
-        else
+        elseif any(diagnosticTrue)
             InterictalPhotophobia(thisSubject) = true;
+        else
+            InterictalPhotophobia(thisSubject) = false;
         end % binary test
     else
         % If no subject has gone answered the Choi survey questions, then

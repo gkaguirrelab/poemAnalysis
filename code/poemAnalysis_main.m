@@ -18,15 +18,14 @@ clear variables
 close all
 
 %% Set paths to data and output
-qualtricsDataDir = '/Users/aguirre/Box Sync/MELA_Protected/POEM_v1.1s_2018_11_07_Analysis/';
-analysisDir = '/Users/aguirre/Box Sync/MELA_Protected/POEM_v1.1s_2018_11_07_Analysis/';
+analysisDir = '/Users/brianahaggerty/Box/MELA_Protected/POEM_analysis/POEM_v1.1s_2021_06_24_Analysis/';
 
 % Set the output filenames
-outputResultExcelName=fullfile(analysisDir, 'POEM_v1.1s_2018_11_07_results.xlsx');
-rawDataSheets={'POEM_v1.1s_2018_11_07_raw.csv'};
+outputResultExcelName=fullfile(analysisDir, 'POEM_v1.1_results.xlsx');
+rawDataSheets={'POEM_v1.1_raw.csv'};
 
 % get the full path to thisDataSheet
-thisDataSheetFileName=fullfile(qualtricsDataDir, rawDataSheets{1});
+thisDataSheetFileName=fullfile(analysisDir, rawDataSheets{1});
 
 
 %% load and pre-process thisDataSheet, returning table "T"
