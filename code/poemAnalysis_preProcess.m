@@ -53,7 +53,7 @@ orig_state = warning;
 warning('off','MATLAB:table:ModifiedAndSavedVarnames');
 warning('off','MATLAB:table:ModifiedVarnames');
 if isempty(p.Results.formatString)
-    T=readtable(spreadSheetName,'DatetimeType','text');
+    T=readtable(spreadSheetName,'DatetimeType','text','Format','auto');
 else
     T=readtable(spreadSheetName,'DatetimeType','text','Format',p.Results.formatString);
 end
