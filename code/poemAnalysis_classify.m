@@ -113,7 +113,7 @@ for thisSubject = 1:numSubjects
     diagnosticNumberNeeded=[1,1];
     clear diagnosticAnswers
     diagnosticAnswers(1,:) = {'spots','stars','lines','flashing lights','zigzag lines','heat waves','vision loss'};
-    diagnosticAnswers(2,:) = {'Before the headache/discomfort'};
+    diagnosticAnswers(2,:) = {'Before the headache/discomfort','','','','','',''};
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -190,12 +190,13 @@ for thisSubject = 1:numSubjects
     % Define the necessary and sufficient response in the multiple choice
     % check box button set
     multiCriterionQuestions={'When do you have this numbness and/or tingling? Please check all that apply.', ...
-        'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? (check all that apply)','How long does the numbness and/or tingling last?'};
+        'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? (check all that apply)',...
+        'How long does the numbness and/or tingling last?'};
     diagnosticNumberNeeded=[1,1,1];
     clear diagnosticAnswers
-    diagnosticAnswers(1,:) = {'Before the headache/discomfort','',''};
+    diagnosticAnswers(1,:) = {'Before the headache/discomfort',''};
     diagnosticAnswers(2,:) = {'Numbness of your body or face','Tingling of your body or face'};
-    diagnosticAnswers(3,:) = {'5 min to 1 hour','More than 1 hour',''};
+    diagnosticAnswers(3,:) = {'5 min to 1 hour','More than 1 hour'};
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -277,7 +278,8 @@ for thisSubject = 1:numSubjects
             'The pain is made worse by routine activities such as walking or climbing stairs'};
         diagnosticAnswers(2,:) = {'Nausea and/or vomiting',...
             'Sensitivity to light',...
-            'Sensitivity to sound',''};
+            'Sensitivity to sound',...
+            ''};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -323,9 +325,10 @@ for thisSubject = 1:numSubjects
         'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness like the cold or flu?',...
         'Have you ever had episodes of discomfort, pressure, or pain around your eyes or face?'};
     clear diagnosticResponses
-    diagnosticResponses(1,:) = {'No','' ,'No','' ,'No'};
-    diagnosticResponses(2,:) = {'No','' ,'Yes','No','No'};
-    diagnosticResponses(3,:) = {'Yes','No','', '' ,'No'};
+    %LOOK add comment here about pattern in columns vs rows
+    diagnosticResponses(1,:) = {'No','','No','','No'};
+    diagnosticResponses(2,:) = {'No','','Yes','No','No'};
+    diagnosticResponses(3,:) = {'Yes','No','','','No'};
     
     % Test if there is a column in the table for each question
     % KNOWN BUG - If no subjects have followed a path resulting in
@@ -381,24 +384,22 @@ for thisSubject = 1:numSubjects
         % 2. endorses symptoms suggestive of aura, even if they do not
         %       meet formal criteria for migraine with aura (Q8, Q23)
         % 3. endorses any of the migraine characteristics of sensory
-        %       sensivity, nausea/vomitting, exacerbation with activity (Q65, Q51, Q52)
-        multiCriterionQuestions={...
-            'Do your headaches or discomfort episodes ever last more than 4 hours?',...
+        %       sensivity, nausea/vomitting, exacerbation with activity (Q6, Q51, Q52)
+        multiCriterionQuestions={'Do your headaches or discomfort episodes ever last more than 4 hours?',...
             'Around the time of your headaches or discomfort episodes, have you ever seen any of the following? (check all that apply)',...
             'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? (check all that apply)',...
-            'During these episodes, do you ever experience the following symptoms? Please mark all that apply.',... %LOOK this type of Q65 is no longer a question on poem_v2.4. How should we handle this? There are two Qs on poem_v2.4 similar to this (Q6 and Q52) but might be referring to diff types of headaches.
+            'During headaches or discomfort episodes that last longer than 4 hours, do you ever experience the following symptoms? Please check all that apply.',...
             'For your WORST type of headache or discomfort episode, do any of the following statements describe your pain and symptoms? Please check all that apply.',...
-            'During your WORST type of headache or discomfort episode, do you ever experience the following symptoms? Please check all that apply.',...
-            };
+            'During your WORST type of headache or discomfort episode, do you ever experience the following symptoms? Please check all that apply.'};
         
         exclusionNumberNeeded=[1,1,1,1,1,1];
         clear exclusionAnswers
-        exclusionAnswers(1,:) ={'Yes','',''};
-        exclusionAnswers(2,:) ={'spots','stars','lines','flashing lights','zigzag lines','heat waves','vision loss','',''};
-        exclusionAnswers(3,:) ={'Numbness of your body or face','Tingling of your body or face'};
-        exclusionAnswers(4,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
-        exclusionAnswers(5,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs'};
-        exclusionAnswers(6,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound'};
+        exclusionAnswers(1,:) ={'Yes','','','','','',''};
+        exclusionAnswers(2,:) ={'spots','stars','lines','flashing lights','zigzag lines','heat waves','vision loss'};
+        exclusionAnswers(3,:) ={'Numbness of your body or face','Tingling of your body or face','','','','',''};
+        exclusionAnswers(4,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
+        exclusionAnswers(5,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs','','','',''};
+        exclusionAnswers(6,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -407,7 +408,7 @@ for thisSubject = 1:numSubjects
         % subject from the MildHeadache category
         if any(questionExist)
             % Identify which columns of the table contain the relevant questions.
-            questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
+            questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions); %LOOK I get a cellfun error here
             % Loop through the exclusion questions
             for qq=1:length(questionColumnIdx)
                 % Get the answer string for this question
@@ -519,6 +520,50 @@ for thisSubject = 1:numSubjects
         InterictalPhotophobia(thisSubject) = false;
     end
     
+    %{
+    %% Allodynia Symptom Checklist (ASC-12) questions
+    % The Allodynia Symptom Checklist (2008) consists of twelve questions
+    % that assess cutaneous allodynia. Response options were never (0),
+    % rarely (0), less than 50% of the time (1), 50% of the time (2), and
+    % none (0). A scale was developed distinguishing no CA (scores 0–2),
+    % mild (3–5), moderate (6–8), and severe (9). (Q118 - Q129)
+    % LOOK Fix both Allodynia sections' answer and add logic
+    multiCriterionQuestions={'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when combing your hair?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when pulling your hair back (e.g., ponytail)?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when shaving your face?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when wearing eyeglasses?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when wearing contact lenses?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when wearing earrings?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when wearing a necklace?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when wearing tight clothing?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when taking a shower (when shower water hits your face)?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when resting your face or head on a pillow?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when exposed to heat (e.g., cooking, washing your face with hot water)?',...
+        'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when exposed to cold (e.g., using an ice pack, washing your face with cold water)?'};
+    
+    diagnosticNumberNeeded=[1,1,1,1,1,1,1,1,1,1,1,1];
+    clear diagnosticAnswers
+    diagnosticAnswers(1,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(2,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(3,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(4,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(5,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(6,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(7,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(8,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(9,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(10,:)={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(11,:)={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(12,:)={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    
+    
+    %% Interictal allodynia
+    %  (Q130)
+    binaryCriterionQuestions={'Do you ever have any of the above symptoms in between your headaches or discomfort episodes?'};
+    clear diagnosticResponses
+    diagnosticResponses={'Yes'};
+    emptyResponses={''};
+    %}
     
     %% History of childhood motion sickness
     % The subject answers this if they did not go down a migraine path (Q63)
