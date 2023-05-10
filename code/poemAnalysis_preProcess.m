@@ -2,7 +2,7 @@ function [T, notesText] = poemAnalysis_preProcess(spreadSheetName, varargin)
 % Cleans and organizes data from a raw POEM responses spreadsheet
 %
 % Syntax:
-%  [T, notesText] = qualtricsAnalysis_preProcess(spreadSheetName)
+%  [T, notesText] = poemAnalysis_preProcess(spreadSheetName)
 %
 % Description:
 %   Loads csv file into which Qualtrics migraine assessment data has been
@@ -21,6 +21,12 @@ function [T, notesText] = poemAnalysis_preProcess(spreadSheetName, varargin)
 %   T                     - The table
 %   notesText             - A cell array with notes regarding the table conversion
 %
+% Examples:
+%{
+    spreadSheetName = '/Users/gerdinfalconi/Aguirre-Brainard Lab Dropbox/Gerdin Falconi/BLNK_data/POEM/GF_test/POEM_v2.4_May 4, 2023_15.38.csv';
+    [T, notesText] = poemAnalysis_preProcess(spreadSheetName);
+%}
+
 
 %% Parse input and define variables
 p = inputParser;
