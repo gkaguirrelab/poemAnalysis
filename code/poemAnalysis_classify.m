@@ -28,7 +28,7 @@ diagnoses={'MigraineWithoutAura',...
     'RecencyAura',...
     'SeriousnessQuestion'};
 
-% Pull the QuestionText out of the table properties
+% Pull the QuestionText out of the table properties (Important: Code assumes all POEM questions are unique, in order to work properly (e.g. when finding column ids))
 QuestionText=T.Properties.UserData.QuestionText;
 
 % At the outset of processing, all subjects are candidates for all
@@ -112,7 +112,7 @@ for thisSubject = 1:numSubjects
         'When do you see these visual phenomena in relation to your headaches or discomfort episodes? Please check all that apply.'};
     diagnosticNumberNeeded=[1,1];
     clear diagnosticAnswers
-    diagnosticAnswers(1,:) = {'spots','stars','lines','flashing lights','zigzag lines','heat waves','vision loss'};
+    diagnosticAnswers(1,:) = {'Spots','Stars','Lines','Flashing lights','Zigzag lines','Heat waves','Vision loss'};
     diagnosticAnswers(2,:) = {'Before the headache/discomfort','','','','','',''};
     
     % Test if there is a column in the table for each question
@@ -325,7 +325,7 @@ for thisSubject = 1:numSubjects
         'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness like the cold or flu?',...
         'Have you ever had episodes of discomfort, pressure, or pain around your eyes or face?'};
     clear diagnosticResponses
-    %LOOK add comment here about pattern in columns vs rows
+    %For this section, binaryCriterionQuestions correspond to diagnosticResponses' columns (not rows)
     diagnosticResponses(1,:) = {'No','','No','','No'};
     diagnosticResponses(2,:) = {'No','','Yes','No','No'};
     diagnosticResponses(3,:) = {'Yes','No','','','No'};
@@ -395,7 +395,7 @@ for thisSubject = 1:numSubjects
         exclusionNumberNeeded=[1,1,1,1,1,1];
         clear exclusionAnswers
         exclusionAnswers(1,:) ={'Yes','','','','','',''};
-        exclusionAnswers(2,:) ={'spots','stars','lines','flashing lights','zigzag lines','heat waves','vision loss'};
+        exclusionAnswers(2,:) ={'Spots','Stars','Lines','Flashing lights','Zigzag lines','Heat waves','Vision loss'};
         exclusionAnswers(3,:) ={'Numbness of your body or face','Tingling of your body or face','','','','',''};
         exclusionAnswers(4,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
         exclusionAnswers(5,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs','','','',''};
@@ -408,7 +408,7 @@ for thisSubject = 1:numSubjects
         % subject from the MildHeadache category
         if any(questionExist)
             % Identify which columns of the table contain the relevant questions.
-            questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions); %LOOK I get a cellfun error here
+            questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
             % Loop through the exclusion questions
             for qq=1:length(questionColumnIdx)
                 % Get the answer string for this question
@@ -520,12 +520,12 @@ for thisSubject = 1:numSubjects
         InterictalPhotophobia(thisSubject) = false;
     end
     
-    %{
+    
     %% Allodynia Symptom Checklist (ASC-12) questions
     % The Allodynia Symptom Checklist (2008) consists of twelve questions
     % that assess cutaneous allodynia. Response options were never (0),
-    % rarely (0), less than 50% of the time (1), 50% of the time (2), and
-    % none (0). A scale was developed distinguishing no CA (scores 0–2),
+    % rarely (0), less than 50% of the time (1), 50% of the time or more
+    % (2), and none (0). A scale was developed distinguishing no CA (scores 0–2),
     % mild (3–5), moderate (6–8), and severe (9). (Q118 - Q129)
     % LOOK Fix both Allodynia sections' answer and add logic
     multiCriterionQuestions={'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when combing your hair?',...
@@ -543,18 +543,18 @@ for thisSubject = 1:numSubjects
     
     diagnosticNumberNeeded=[1,1,1,1,1,1,1,1,1,1,1,1];
     clear diagnosticAnswers
-    diagnosticAnswers(1,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(2,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(3,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(4,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(5,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(6,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(7,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(8,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(9,:) ={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(10,:)={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(11,:)={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
-    diagnosticAnswers(12,:)={'Does not apply to me','Never','Rarely','Less than half the time','Half the time or more'};
+    diagnosticAnswers(1,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(2,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(3,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(4,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(5,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(6,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(7,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(8,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(9,:) ={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(10,:)={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(11,:)={'Less than half the time','Half the time or more'};
+    diagnosticAnswers(12,:)={'Less than half the time','Half the time or more'};
     
     
     %% Interictal allodynia
@@ -563,7 +563,7 @@ for thisSubject = 1:numSubjects
     clear diagnosticResponses
     diagnosticResponses={'Yes'};
     emptyResponses={''};
-    %}
+    
     
     %% History of childhood motion sickness
     % The subject answers this if they did not go down a migraine path (Q63)
