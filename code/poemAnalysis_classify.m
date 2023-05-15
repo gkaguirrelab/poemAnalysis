@@ -21,6 +21,8 @@ diagnoses={'MigraineWithoutAura',...
     'HeadacheNOS',...
     'ChoiIctalPhotophobiaScore',...
     'InterictalPhotophobia',...
+    'IctalAllodyniaScore',...
+    'InterictalAllodynia',...
     'ChildhoodMotionSickness',...
     'FamHxOfHeadache',...
     'Age',...
@@ -40,9 +42,13 @@ HeadacheFreeFlag=true(numSubjects, 1);
 MildNonMigrainousHeadacheFlag=true(numSubjects, 1);
 HeadacheNOSFlag=true(numSubjects, 1);
 % The Choi questions are a score; default to nan
-ChoiIctalPhotohobiaScore=nan(numSubjects, 1);
+ChoiIctalPhotophobiaScore=nan(numSubjects, 1);
 % A variable to hold the response to this question from Choi
 InterictalPhotophobia=false(numSubjects, 1);
+% The ASC-12 questions are a score; default to nan
+IctalAllodyniaScore=nan(numSubjects, 1);
+%A variable to hold the response to this question from ASC-12
+InterictalAllodynia=false(numSubjects, 1);
 % Copy over and save age if available
 ageIdx = find(strcmp(T.Properties.UserData.QuestionText,'What is your age (in years)?'));
 if isempty(ageIdx)
@@ -475,17 +481,17 @@ for thisSubject = 1:numSubjects
         % not completed the Choi survey and is assigned a NaN score
         emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
         if any(emptyAnswerTest)
-            ChoiIctalPhotohobiaScore(thisSubject) = nan;
+            ChoiIctalPhotophobiaScore(thisSubject) = nan;
         else
             % count how many of these columns contain the diagnostic responses
             diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-            ChoiIctalPhotohobiaScore(thisSubject) = sum(diagnosticAnswerTest);
+            ChoiIctalPhotophobiaScore(thisSubject) = sum(diagnosticAnswerTest);
         end % binary test
     else
         % If no subject has gone answered the Choi survey questions, then
         % one or more columns in the table may not be present for these
         % questions. If this is the case, mark Choi score as NaN.
-        ChoiIctalPhotohobiaScore(thisSubject) = nan;
+        ChoiIctalPhotophobiaScore(thisSubject) = nan;
     end
     
     
@@ -526,8 +532,7 @@ for thisSubject = 1:numSubjects
     % that assess cutaneous allodynia. Response options were never (0),
     % rarely (0), less than 50% of the time (1), 50% of the time or more
     % (2), and none (0). A scale was developed distinguishing no CA (scores 0–2),
-    % mild (3–5), moderate (6–8), and severe (9). (Q118 - Q129)
-    % LOOK Fix both Allodynia sections' answer and add logic
+    % mild (3–5), moderate (6–8), and severe (>=9). (Q118 - Q129)
     multiCriterionQuestions={'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when combing your hair?',...
         'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when pulling your hair back (e.g., ponytail)?',...
         'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when shaving your face?',...
@@ -541,7 +546,6 @@ for thisSubject = 1:numSubjects
         'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when exposed to heat (e.g., cooking, washing your face with hot water)?',...
         'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when exposed to cold (e.g., using an ice pack, washing your face with cold water)?'};
     
-    diagnosticNumberNeeded=[1,1,1,1,1,1,1,1,1,1,1,1];
     clear diagnosticAnswers
     diagnosticAnswers(1,:) ={'Less than half the time','Half the time or more'};
     diagnosticAnswers(2,:) ={'Less than half the time','Half the time or more'};
@@ -555,6 +559,33 @@ for thisSubject = 1:numSubjects
     diagnosticAnswers(10,:)={'Less than half the time','Half the time or more'};
     diagnosticAnswers(11,:)={'Less than half the time','Half the time or more'};
     diagnosticAnswers(12,:)={'Less than half the time','Half the time or more'};
+    emptyAnswers={'','','','','','','','','','','',''};
+    
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
+    
+    % QuestionExist will all be true if a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
+        % Test if any of these columns are empty. If so, this subject has
+        % not completed the ASC-12 survey and is assigned a NaN score
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyAnswers);
+        if any(emptyAnswerTest)
+            IctalAllodyniaScore(thisSubject) = nan;
+        else
+            % count how many of these columns contain diagnostic answers
+            % and add their values
+            diagnosticAnswer1Test = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticAnswers(:,1)'); %column 1 has a value of 1
+            diagnosticAnswer2Test = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticAnswers(:,2)'); %column 2 has a value of 2
+            IctalAllodyniaScore(thisSubject) = sum(diagnosticAnswer1Test) + sum(diagnosticAnswer2Test * 2);
+        end % diagnostic test
+    else
+        % If no subject has gone answered the ASC-12 survey questions, then
+        % one or more columns in the table may not be present for these
+        % questions. If this is the case, mark Allodynia score as NaN.
+        IctalAllodyniaScore(thisSubject) = nan;
+    end
     
     
     %% Interictal allodynia
@@ -563,6 +594,30 @@ for thisSubject = 1:numSubjects
     clear diagnosticResponses
     diagnosticResponses={'Yes'};
     emptyResponses={''};
+    
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryCriterionQuestions);
+    
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if any of these columns are empty. If so, this subject has
+        % not completed the ASC-12 survey and is assigned a false value
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        diagnosticTrue = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+        if any(emptyAnswerTest)
+            InterictalAllodynia(thisSubject) = false;
+        elseif any(diagnosticTrue)
+            InterictalAllodynia(thisSubject) = true;
+        else
+            InterictalAllodynia(thisSubject) = false;
+        end % binary test
+    else
+        % If no subject has gone answered the ASC-12 survey questions, then
+        % one or more columns in the table may not be present for these
+        % questions. If this is the case, mark value as false.
+        InterictalAllodynia(thisSubject) = false;
+    end
     
     
     %% History of childhood motion sickness
@@ -727,8 +782,10 @@ diagnosisTable=table(MigraineWithoutAuraFlag, ...
     HeadacheFreeFlag, ...
     MildNonMigrainousHeadacheFlag, ...
     HeadacheNOSFlag, ...
-    ChoiIctalPhotohobiaScore, ...
+    ChoiIctalPhotophobiaScore, ...
     InterictalPhotophobia, ...
+    IctalAllodyniaScore, ...
+    InterictalAllodynia, ...
     ChildhoodMotionSickness, ...
     FamHxOfHeadache, ...
     Age, ...
