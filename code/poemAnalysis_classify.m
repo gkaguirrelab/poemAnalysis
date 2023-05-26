@@ -165,7 +165,7 @@ for thisSubject = 1:numSubjects
     %          sequential and together last more than 60 minutes.
     
     % Define the binary questions and the diagnostic responses
-    binaryQuestions={'Do you get headaches?',...
+    binaryQuestions={'Do you get headaches?',... %LOOK add Q85 to the logic
         'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness such as the cold or the flu?',...
         'Have you had this numbness and/or tingling with your headaches or discomfort episodes two or more times in your life?'};
     diagnosticResponses={'Yes','Yes','Yes'};
@@ -682,6 +682,71 @@ for thisSubject = 1:numSubjects
     end
     
     
+    %% Ophthalmology
+    %  (Q73, Q76)
+    binaryCriterionQuestions={'Have you ever been seen by an ophthalmologist for an eye disease, other than for a routine check-up or to receive a prescription for glasses?'};
+    openCriterionQuestions={'If yes, please provide details and any diagnosis given.'};
+    diagnosticResponses={'Yes'};
+    emptyResponses={''};
+
+    % Test if there is a column in the table for each question
+    questionExist(1) = sum(strcmp(QuestionText,binaryCriterionQuestions{1}))==1;
+    questionExist(2) = sum(strcmp(QuestionText,openCriterionQuestions{1}))==1;
+    
+    % QuestionExist will all be true if a column was found for each question
+    if all(questionExist)
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx(1) = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        questionColumnIdx(2) = cellfun(@(x) find(strcmp(QuestionText,x)), openCriterionQuestions);
+        % Test if any of these columns are empty. If so, this subject has
+        % not completed the family history question (which should never
+        % happen)
+        diagnosticTrue = strcmp(table2cell(T(thisSubject,questionColumnIdx(1))),diagnosticResponses);
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx(2))),emptyResponses);
+        if emptyAnswerTest && diagnosticTrue
+            Ophthalmology(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(1)));
+        elseif emptyAnswerTest
+            Ophthalmology(thisSubject) = {''};
+        else
+            % Copy over the response string
+            Ophthalmology(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(2)));
+        end % binary test
+    else
+        % If no subject has answered the headache recency question, then
+        % make sure that all entries continue to be empty
+        Ophthalmology(thisSubject) = {''};
+    end
+    
+    
+    %% Monthly Frequency
+    %  (Q117)
+    multiCriterionQuestions={'How often do you have these headaches or discomfort episodes in a typical month?'};
+    emptyResponses={''};
+    
+    % Test if there is a single column in the table for this question
+    questionExist = sum(strcmp(QuestionText,multiCriterionQuestions{1}))==1;
+    
+    % QuestionExist will all be true if a column was found for each question
+    if questionExist
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
+        % Test if this column is empty. If so, this subject has
+        % not completed the family history question (which should never
+        % happen)
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            FrequencyMonthly(thisSubject) = {''};
+        else
+            % Copy over the response string
+            FrequencyMonthly(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+        end % binary test
+    else
+        % If no subject has answered the headache recency question, then
+        % make sure that all entries continue to be empty
+        FrequencyMonthly(thisSubject) = {''};
+    end
+
+
     %% Headache recency
     %  (Q38)
     binaryCriterionQuestions={'When is the last time you had one of these headaches or discomfort episodes?'};
@@ -713,32 +778,72 @@ for thisSubject = 1:numSubjects
     
     
     %% Aura recency
-    %  (Q47)
-    binaryCriterionQuestions={'When was the last time you had these vision changes?'};
-    emptyResponses={''};
+    %  (Q47, Q48, Q88)
+    binaryCriterionQuestions={'When was the last time you had these vision changes?',...
+        'When was the last time you had this numbness and/or tingling?',...
+        'When was the last time you had difficulty speaking?'};
+    clear diagnosticAnswers
+    diagnosticAnswers(1,:) = {'Within the past week','Within the past month'};
+    diagnosticAnswers(2,:) = {'Within the past week','Within the past month'};
+    diagnosticAnswers(3,:) = {'Within the past week','Within the past month'};
+    emptyResponses={'','',''};
     
-    % Test if there is a single column in the table for this question
-    questionExist = sum(strcmp(QuestionText,binaryCriterionQuestions{1}))==1;
+    % Test if there is a column in the table for each question
+    questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryCriterionQuestions);
     
     % QuestionExist will all be true if a column was found for each question
-    if questionExist
+    if all(questionExist)
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
-        % Test if this column is empty. If so, this subject has
+        % Test if any of these columns are empty. If so, this subject has
         % not completed the family history question (which should never
         % happen)
         emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
-        if any(emptyAnswerTest)
+
+        if emptyAnswerTest(1)
             RecencyVisualAura(thisSubject) = {''};
         else
             % Copy over the response string
-            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-            RecencyVisualAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
-        end % binary test
+            RecencyVisualAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(1)));
+            % Test if at least one kind of aura is recent. Within the past week
+            % or month is considered recent.
+            diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(1))), x), diagnosticAnswers(1,:));
+            if any(diagnosticAnswerTest)
+                RecencyAnyAura(thisSubject) = true;
+            end
+        end
+
+        if emptyAnswerTest(2)
+            RecencySensoryAura(thisSubject) = {''};
+        else
+            % Copy over the response string
+            RecencySensoryAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(2)));
+            % Test if at least one kind of aura is recent. Within the past week
+            % or month is considered recent.
+            diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(2))), x), diagnosticAnswers(2,:));
+            if any(diagnosticAnswerTest)
+                RecencyAnyAura(thisSubject) = true;
+            end
+        end
+
+        if emptyAnswerTest(3)
+            RecencySpeakingAura(thisSubject) = {''};
+        else
+            % Copy over the response string
+            RecencySpeakingAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(3)));
+            % Test if at least one kind of aura is recent. Within the past week
+            % or month is considered recent.
+            diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(3))), x), diagnosticAnswers(3,:));
+            if any(diagnosticAnswerTest)
+                RecencyAnyAura(thisSubject) = true;
+            end
+        end
     else
         % If no subject has answered the headache recency question, then
         % make sure that all entries continue to be empty
         RecencyVisualAura(thisSubject) = {''};
+        RecencySensoryAura(thisSubject) = {''};
+        RecencySpeakingAura(thisSubject) = {''};
     end
     
     
