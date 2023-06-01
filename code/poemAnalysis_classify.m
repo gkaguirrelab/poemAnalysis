@@ -30,7 +30,7 @@ diagnoses={'HeadacheFree',...
     'RecencyMigraine',...
     'RecencyVisualAura',...
     'RecencySensoryAura',...
-    'RecencySpeakingAura',...
+    'RecencySpeechAura',...
     'RecencyAnyAura',...
     'SeriousnessQuestion'};
 
@@ -51,9 +51,9 @@ ChoiIctalPhotophobiaScore=nan(numSubjects, 1);
 InterictalPhotophobia=false(numSubjects, 1);
 % The ASC-12 questions are a score; default to nan
 IctalAllodyniaScore=nan(numSubjects, 1);
-%A variable to hold the response to this question from ASC-12
+% A variable to hold the response to this question from ASC-12
 InterictalAllodynia=false(numSubjects, 1);
-%A variable to hold if at least one kind of aura is recent
+% A variable to hold if at least one kind of aura is recent
 RecencyAnyAura = false(numSubjects, 1);
 % These next set of data columns contain the strings copied over from the
 % answer text, and default to empty.
@@ -64,8 +64,12 @@ FrequencyMonthly = cell(numSubjects, 1);
 RecencyMigraine = cell(numSubjects, 1);
 RecencyVisualAura = cell(numSubjects, 1);
 RecencySensoryAura = cell(numSubjects, 1);
-RecencySpeakingAura = cell(numSubjects, 1);
+RecencySpeechAura = cell(numSubjects, 1);
 SeriousnessQuestion = cell(numSubjects, 1);
+
+% At least 3 of multiple characteristics must be met in order to qualify as
+% migraine with a type of aura
+minRequirement = 3;
 
 for thisSubject = 1:numSubjects
     
@@ -76,8 +80,11 @@ for thisSubject = 1:numSubjects
     %           - yes to headache questions (Q1, Q3)
     %           - yes to question regarding visual aura (Q8); Q23 is ignored
     %           - yes to having more than 2 lifetime visual aura events (Q22)
+    %           - yes to aura symptom spreading (Q82)
+    %           - yes to aura symptom lasting 5-60 mins (Q70)
+    %           - yes to aura symptom being unilateral (Q81)
     %       2) multiple choice checkbox with one necessary and sufficient
-    %          diagnostic answer: endorse having aura before headache (Q9)
+    %          diagnostic answer: endorse having aura before/during headache (Q9)
     %       3) multiple choice radio button, with one diagnostic answer:
     %          report aura duration between 5 and 60 min (Q19). This can be
     %          treated as a binary question in the program logic.
@@ -114,12 +121,20 @@ for thisSubject = 1:numSubjects
     
     % Define the necessary and sufficient response in the multiple choice
     % check box button set
-    multiCriterionQuestions={'Around the time of your headaches or discomfort episodes, have you ever seen any of the following? (check all that apply)',...
+    % At least three (minRequirement) of the following characteristics must be met
+    multiCriterionQuestions={'Do the vision changes spread or move across your vision?',...
+        'Do these vision changes ever last 5-60 minutes?',...
+        'Are the vision changes only on one side?',...
+        'Around the time of your headaches or discomfort episodes, have you ever seen any of the following? (check all that apply)',...
         'When do you see these visual phenomena in relation to your headaches or discomfort episodes? Please check all that apply.'};
-    diagnosticNumberNeeded=[1,1];
+    counter = 0;
+    diagnosticNumberNeeded=[1,1,1,1,1];
     clear diagnosticAnswers
-    diagnosticAnswers(1,:) = {'Spots','Stars','Lines','Flashing lights','Zigzag lines','Heat waves','Vision loss'};
-    diagnosticAnswers(2,:) = {'Before the headache/discomfort','','','','','',''};
+    diagnosticAnswers(1,:) = {'Yes','','','','','',''};
+    diagnosticAnswers(2,:) = {'Yes','','','','','',''};
+    diagnosticAnswers(3,:) = {'Yes','','','','','',''};
+    diagnosticAnswers(4,:) = {'Spots','Stars','Lines','Flashing lights','Zigzag lines','Heat waves','Vision loss'};
+    diagnosticAnswers(5,:) = {'Before the headache/discomfort','During the headache/discomfort','','','','',''};
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -135,13 +150,15 @@ for thisSubject = 1:numSubjects
             % Test if the answer string contains enough diagnostic answers
             diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
             if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithVisualAuraFlag(thisSubject)
+                counter = counter + 1;
                 if verbose
                     fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the second criterion for migraine with visual aura!\n']);
                 end
-            else
-                MigraineWithVisualAuraFlag(thisSubject) = false;
             end % symptom inventory test
         end % loop over symptom inventory tests
+        if counter < minRequirement
+            MigraineWithVisualAuraFlag(thisSubject) = false;
+        end
     else
         % If no subject has gone down this particular branch of the survey,
         % then one or more columns in the table may not be present for these
@@ -156,8 +173,11 @@ for thisSubject = 1:numSubjects
     %           - yes to headache questions (Q1, Q3)
     %           - yes to question regarding other aura (Q23); Q8 is ignored
     %           - yes to having more than 2 lifetime other aura events (Q24)
+    %           - yes to aura symptom spreading (Q84)
+    %           - yes to aura symptom lasting 5-60 mins (Q71)
+    %           - yes to aura symptom being unilateral (Q83)
     %       2) multiple choice checkbox with one necessary and sufficient
-    %          diagnostic answer: endorse having aura before headache (Q25)
+    %          diagnostic answer: endorse having aura before/during headache (Q25)
     %       3) multiple choice radio button, with two diagnostic answers:
     %          report aura duration between 5 and 60 min or longer than 60
     %          minutes (Q26). The >60 minute answer is acceptable as it is one
@@ -165,7 +185,7 @@ for thisSubject = 1:numSubjects
     %          sequential and together last more than 60 minutes.
     
     % Define the binary questions and the diagnostic responses
-    binaryQuestions={'Do you get headaches?',... %LOOK add Q85 to the logic
+    binaryQuestions={'Do you get headaches?',...
         'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness such as the cold or the flu?',...
         'Have you had this numbness and/or tingling with your headaches or discomfort episodes two or more times in your life?'};
     diagnosticResponses={'Yes','Yes','Yes'};
@@ -192,17 +212,26 @@ for thisSubject = 1:numSubjects
         % questions. If this is the case, mark the diagnosis as false.
         MigraineWithOtherAuraFlag(thisSubject) = false;
     end
-    
+    %LOOK add Q85, 86, 87, 89, 90 to the speech logic (in for loop, have a counter and check after loop that counter is not less than 3)
     % Define the necessary and sufficient response in the multiple choice
     % check box button set
-    multiCriterionQuestions={'When do you have this numbness and/or tingling? Please check all that apply.', ...
+    % At least three (minRequirement) of the following characteristics must
+    % be met (for either sensory aura or speech aura)
+    multiCriterionQuestions={'Does the numbness and/or tingling start in one spot, and then spread or move?',...
+        'Do these changes ever last 5-60 minutes?',...
+        'Is the numbness and/or tingling only on one side of your body?',...
         'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? (check all that apply)',...
+        'When do you have this numbness and/or tingling? Please check all that apply.',...
         'How long does the numbness and/or tingling last?'};
-    diagnosticNumberNeeded=[1,1,1];
+    counter = 0;
+    diagnosticNumberNeeded=[1,1,1,1,1,1];
     clear diagnosticAnswers
-    diagnosticAnswers(1,:) = {'Before the headache/discomfort',''};
-    diagnosticAnswers(2,:) = {'Numbness of your body or face','Tingling of your body or face'};
-    diagnosticAnswers(3,:) = {'5 min to 1 hour','More than 1 hour'};
+    diagnosticAnswers(1,:) = {'Yes',''};
+    diagnosticAnswers(2,:) = {'Yes',''};
+    diagnosticAnswers(3,:) = {'Yes',''};
+    diagnosticAnswers(4,:) = {'Numbness of your body or face','Tingling of your body or face'};
+    diagnosticAnswers(5,:) = {'Before the headache/discomfort','During the headache/discomfort'};
+    diagnosticAnswers(6,:) = {'5 min to 1 hour','More than 1 hour'};
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -218,13 +247,15 @@ for thisSubject = 1:numSubjects
             % Test if the answer string contains enough diagnostic answers
             diagnosticAnswerTest=cellfun(@(x) strfind(answerString, x), diagnosticAnswers(qq,:));
             if sum(cellfun(@(x) ~isempty(x),diagnosticAnswerTest)) >= diagnosticNumberNeeded(qq) && MigraineWithOtherAuraFlag(thisSubject)
+                counter = counter + 1;
                 if verbose
                     fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' passed multiCriterionQuestion #' num2str(qq) ' for the second criterion for migraine with other aura!\n']);
                 end
-            else
-                MigraineWithOtherAuraFlag(thisSubject) = false;
             end % symptom inventory test
         end % loop over symptom inventory tests
+        if counter < minRequirement
+            MigraineWithOtherAuraFlag(thisSubject) = false;
+        end
     else
         % If no subject has gone down this particular branch of the survey,
         % then one or more columns in the table may not be present for these
@@ -783,9 +814,9 @@ for thisSubject = 1:numSubjects
         'When was the last time you had this numbness and/or tingling?',...
         'When was the last time you had difficulty speaking?'};
     clear diagnosticAnswers
-    diagnosticAnswers(1,:) = {'Within the past week','Within the past month'};
-    diagnosticAnswers(2,:) = {'Within the past week','Within the past month'};
-    diagnosticAnswers(3,:) = {'Within the past week','Within the past month'};
+    diagnosticAnswers(1,:) = {'Within the past week','Within the past month','Within the past year'};
+    diagnosticAnswers(2,:) = {'Within the past week','Within the past month','Within the past year'};
+    diagnosticAnswers(3,:) = {'Within the past week','Within the past month','Within the past year'};
     emptyResponses={'','',''};
     
     % Test if there is a column in the table for each question
@@ -805,8 +836,8 @@ for thisSubject = 1:numSubjects
         else
             % Copy over the response string
             RecencyVisualAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(1)));
-            % Test if at least one kind of aura is recent. Within the past week
-            % or month is considered recent.
+            % Test if at least one kind of aura is recent. Within the past
+            % week, month, or year is considered recent.
             diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(1))), x), diagnosticAnswers(1,:));
             if any(diagnosticAnswerTest)
                 RecencyAnyAura(thisSubject) = true;
@@ -818,8 +849,8 @@ for thisSubject = 1:numSubjects
         else
             % Copy over the response string
             RecencySensoryAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(2)));
-            % Test if at least one kind of aura is recent. Within the past week
-            % or month is considered recent.
+            % Test if at least one kind of aura is recent. Within the past
+            % week, month, or year is considered recent.
             diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(2))), x), diagnosticAnswers(2,:));
             if any(diagnosticAnswerTest)
                 RecencyAnyAura(thisSubject) = true;
@@ -827,12 +858,12 @@ for thisSubject = 1:numSubjects
         end
 
         if emptyAnswerTest(3)
-            RecencySpeakingAura(thisSubject) = {''};
+            RecencySpeechAura(thisSubject) = {''};
         else
             % Copy over the response string
-            RecencySpeakingAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(3)));
-            % Test if at least one kind of aura is recent. Within the past week
-            % or month is considered recent.
+            RecencySpeechAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(3)));
+            % Test if at least one kind of aura is recent. Within the past
+            % week, month, or year is considered recent.
             diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(3))), x), diagnosticAnswers(3,:));
             if any(diagnosticAnswerTest)
                 RecencyAnyAura(thisSubject) = true;
@@ -843,7 +874,7 @@ for thisSubject = 1:numSubjects
         % make sure that all entries continue to be empty
         RecencyVisualAura(thisSubject) = {''};
         RecencySensoryAura(thisSubject) = {''};
-        RecencySpeakingAura(thisSubject) = {''};
+        RecencySpeechAura(thisSubject) = {''};
     end
     
     
@@ -898,7 +929,7 @@ diagnosisTable=table(HeadacheFreeFlag, ...
     RecencyMigraine, ...
     RecencyVisualAura, ...
     RecencySensoryAura, ...
-    RecencySpeakingAura, ...
+    RecencySpeechAura, ...
     RecencyAnyAura, ...
     SeriousnessQuestion);
 diagnosisTable.Properties.VariableNames=diagnoses;
