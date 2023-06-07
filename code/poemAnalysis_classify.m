@@ -467,22 +467,24 @@ for thisSubject = 1:numSubjects
         % 2. endorses symptoms suggestive of aura, even if they do not
         %       meet formal criteria for migraine with aura (Q8, Q23)
         % 3. endorses any of the migraine characteristics of sensory
-        %       sensivity, nausea/vomitting, exacerbation with activity (Q6, Q51, Q52)
+        %       sensivity, nausea/vomitting, exacerbation with activity (Q6, Q131, Q51, Q52)
         multiCriterionQuestions={'Do your headaches or discomfort episodes ever last more than 4 hours?',...
             'Around the time of your headaches or discomfort episodes, have you ever seen any of the following? (check all that apply)',...
             'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? (check all that apply)',...
             'During headaches or discomfort episodes that last longer than 4 hours, do you ever experience the following symptoms? Please check all that apply.',...
+            'Do you usually get headaches around your menstrual periods?',...
             'For your WORST type of headache or discomfort episode, do any of the following statements describe your pain and symptoms? Please check all that apply.',...
             'During your WORST type of headache or discomfort episode, do you ever experience the following symptoms? Please check all that apply.'};
         
-        exclusionNumberNeeded=[1,1,1,1,1,1];
+        exclusionNumberNeeded=[1,1,1,1,1,1,1];
         clear exclusionAnswers
         exclusionAnswers(1,:) ={'Yes','','','','','',''};
         exclusionAnswers(2,:) ={'Spots','Stars','Lines','Flashing lights','Zigzag lines','Heat waves','Vision loss'};
         exclusionAnswers(3,:) ={'Numbness of your body or face','Tingling of your body or face','','','','',''};
         exclusionAnswers(4,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
-        exclusionAnswers(5,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs','','','',''};
-        exclusionAnswers(6,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
+        exclusionAnswers(5,:) ={'Yes','','','','','',''};
+        exclusionAnswers(6,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs','','','',''};
+        exclusionAnswers(7,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
