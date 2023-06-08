@@ -537,7 +537,8 @@ for thisSubject = 1:numSubjects
     %% Choi photophobia questions
     % The Choi (2009) survey consists of seven questions that assess
     % photophobia during migraine. The score is the number of 'yes'
-    % responses out of seven. (Q29, Q31, Q33, Q35, Q37, Q39, Q41)
+    % responses out of seven (Q29, Q31, Q33, Q35, Q37, Q39, Q41).
+    % We've created a shorter headache-free version as well (Q132, Q133, Q134, Q135).
     binaryCriterionQuestions={'During your headaches or discomfort episodes, do you feel a greater sense of glare or dazzle in your eyes than usual by bright lights?',...
         'During your headaches or discomfort episodes, do flickering lights, glare, specific colors or high contrast striped patterns bother you or your eyes?',...
         'During your headaches or discomfort episodes, do you turn off the lights or draw a curtain to avoid bright conditions?',...
@@ -549,18 +550,34 @@ for thisSubject = 1:numSubjects
     diagnosticResponses={'Yes','Yes','Yes','Yes','Yes','Yes','Yes'};
     emptyResponses={'','','','','','',''};
     
+    %HF version
+    binaryCriterionQuestionsHF={'Do flickering lights, glare, specific colors or high contrast striped patterns bother you or your eyes?',...
+        'Do you turn off the lights or draw a curtain to avoid bright conditions?',...
+        'Do you have to wear sunglasses even in normal daylight?',...
+        'Do bright lights hurt your eyes?'};
+    clear diagnosticResponsesHF
+    diagnosticResponsesHF={'Yes','Yes','Yes','Yes'};
+    emptyResponsesHF={'','','',''};
+    
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryCriterionQuestions);
+    questionExistHF = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryCriterionQuestionsHF);
     
     % QuestionExist will all be true if a column was found for each question
-    if all(questionExist)
+    if all(questionExist) && all(questionExistHF)
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        questionColumnIdxHF = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestionsHF);
         % Test if any of these columns are empty. If so, this subject has
         % not completed the Choi survey and is assigned a NaN score
         emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
-        if any(emptyAnswerTest)
+        emptyAnswerTestHF = strcmp(table2cell(T(thisSubject,questionColumnIdxHF)),emptyResponsesHF);
+        if any(emptyAnswerTest) && any(emptyAnswerTestHF)
             ChoiIctalPhotophobiaScore(thisSubject) = nan;
+        elseif any(emptyAnswerTest)
+            % count how many of these columns contain the diagnostic responses (HF version)
+            diagnosticAnswerTestHF = strcmp(table2cell(T(thisSubject,questionColumnIdxHF)),diagnosticResponsesHF);
+            ChoiIctalPhotophobiaScore(thisSubject) = sum(diagnosticAnswerTestHF);
         else
             % count how many of these columns contain the diagnostic responses
             diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
@@ -611,7 +628,8 @@ for thisSubject = 1:numSubjects
     % that assess cutaneous allodynia. Response options were never (0),
     % rarely (0), less than 50% of the time (1), 50% of the time or more
     % (2), and none (0). A scale was developed distinguishing no CA (scores 0–2),
-    % mild (3–5), moderate (6–8), and severe (>=9). (Q118 - Q129)
+    % mild (3–5), moderate (6–8), and severe (>=9) (Q118 - Q129).
+    % We've created a headache-free version as well (Q136 - Q147).
     multiCriterionQuestions={'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when combing your hair?',...
         'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when pulling your hair back (e.g., ponytail)?',...
         'During your most severe headaches or discomfort episodes, how often do you experience increased pain or an unpleasant sensation on your skin when shaving your face?',...
@@ -640,18 +658,41 @@ for thisSubject = 1:numSubjects
     diagnosticAnswers(12,:)={'Less than half the time','Half the time or more'};
     emptyAnswers={'','','','','','','','','','','',''};
     
+    %HF version
+    multiCriterionQuestionsHF={'How often do you experience increased pain or an unpleasant sensation on your skin when combing your hair?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when pulling your hair back (e.g., ponytail)?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when shaving your face?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when wearing eyeglasses?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when wearing contact lenses?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when wearing earrings?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when wearing a necklace?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when wearing tight clothing?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when taking a shower (when shower water hits your face)?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when resting your face or head on a pillow?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when exposed to heat (e.g., cooking, washing your face with hot water)?',...
+        'How often do you experience increased pain or an unpleasant sensation on your skin when exposed to cold (e.g., using an ice pack, washing your face with cold water)?'};
+    
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
+    questionExistHF = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestionsHF);
     
     % QuestionExist will all be true if a column was found for each question
-    if all(questionExist)
+    if all(questionExist) && all(questionExistHF)
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
+        questionColumnIdxHF = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestionsHF);
         % Test if any of these columns are empty. If so, this subject has
         % not completed the ASC-12 survey and is assigned a NaN score
         emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyAnswers);
-        if any(emptyAnswerTest)
+        emptyAnswerTestHF = strcmp(table2cell(T(thisSubject,questionColumnIdxHF)),emptyAnswers);
+        if any(emptyAnswerTest) && any(emptyAnswerTestHF)
             IctalAllodyniaScore(thisSubject) = nan;
+        elseif any(emptyAnswerTest)
+            % count how many of these columns contain diagnostic answers
+            % and add their values (HF version)
+            diagnosticAnswer1TestHF = strcmp(table2cell(T(thisSubject,questionColumnIdxHF)),diagnosticAnswers(:,1)'); %column 1 has a value of 1
+            diagnosticAnswer2TestHF = strcmp(table2cell(T(thisSubject,questionColumnIdxHF)),diagnosticAnswers(:,2)'); %column 2 has a value of 2
+            IctalAllodyniaScore(thisSubject) = sum(diagnosticAnswer1TestHF) + sum(diagnosticAnswer2TestHF * 2);
         else
             % count how many of these columns contain diagnostic answers
             % and add their values
