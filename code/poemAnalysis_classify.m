@@ -77,7 +77,7 @@ for thisSubject = 1:numSubjects
     %% Migraine with visual aura
     % The criteria that the subject must meet:
     %       1) give a specific set of yes/no responses, including:
-    %           - yes to headache questions (Q1, Q3)
+    %           - yes to headache questions (Q1 or Q39 or Q41) (Q3)
     %           - yes to question regarding visual aura (Q8); Q23 is ignored
     %           - yes to having more than 2 lifetime visual aura events (Q22)
     %           - yes to aura symptom spreading (Q82)
@@ -90,9 +90,15 @@ for thisSubject = 1:numSubjects
     
     % Define the binary questions and the diagnostic responses
     binaryQuestions={'Do you get headaches?',...
+        'Have you ever had a headache?',...
+        'Have you ever had episodes of discomfort, pressure, or pain around your eyes or face?',...
         'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness such as the cold or the flu?',...
         'Have you had these vision changes with your headaches or discomfort episodes two or more times in your life?'};
-    diagnosticResponses={'Yes','Yes','Yes'};
+    clear diagnosticResponses;
+    %For this section, binaryQuestions correspond to diagnosticResponses' columns (not rows)
+    diagnosticResponses(1,:)={'Yes','','','Yes','Yes'};
+    diagnosticResponses(2,:)={'No','Yes','','Yes','Yes'};
+    diagnosticResponses(3,:)={'No','No','Yes','Yes','Yes'};
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryQuestions);
@@ -101,9 +107,13 @@ for thisSubject = 1:numSubjects
     if all(questionExist)
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryQuestions);
-        % determine if these columns contain the diagnostic responses
-        diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-        if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithVisualAuraFlag(thisSubject)
+        % test these columns for each of the diagnostic response patterns
+        for ii = 1:size(diagnosticResponses,1)
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses(ii,:));
+            sumDiagnosticAnswerTest(ii)=sum(diagnosticAnswerTest);
+        end
+        % If any of the patterns were found to match, then give this diagnosis
+        if any(sumDiagnosticAnswerTest == length(diagnosticAnswerTest)) && MigraineWithVisualAuraFlag(thisSubject)
             if verbose
                 fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine with visual aura!\n']);
             end
@@ -170,7 +180,7 @@ for thisSubject = 1:numSubjects
     %% Migraine with other aura
     % The criteria that the subject must meet:
     %       1) give a specific set of yes/no responses, including:
-    %           - yes to headache questions (Q1, Q3)
+    %           - yes to headache questions (Q1 or Q39 or Q41) (Q3)
     %           - yes to question regarding other aura (Q23 or Q85); Q8 is ignored
     %           - yes to having more than 2 lifetime other aura events (Q24 or Q86)
     %           - yes to aura symptom spreading (Q84)(not applicable for speech aura)
@@ -186,17 +196,29 @@ for thisSubject = 1:numSubjects
     
     % Define the binary questions and the diagnostic response patterns
     binaryQuestions={'Do you get headaches?',...
+        'Have you ever had a headache?',...
+        'Have you ever had episodes of discomfort, pressure, or pain around your eyes or face?',...
         'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness such as the cold or the flu?',...
         'Have you had this numbness and/or tingling with your headaches or discomfort episodes two or more times in your life?',...
         'Have you had difficulty speaking with your headaches or discomfort episodes two or more times in your life?'};
     clear diagnosticResponses;
     %For this section, binaryQuestions correspond to diagnosticResponses' columns (not rows)
-    diagnosticResponses(1,:)={'Yes','Yes','Yes',''};
-    diagnosticResponses(2,:)={'Yes','Yes','Yes','No'};
-    diagnosticResponses(3,:)={'Yes','Yes','Yes','Yes'};
-    diagnosticResponses(4,:)={'Yes','Yes','','Yes'};
-    diagnosticResponses(5,:)={'Yes','Yes','No','Yes'};
-    
+    diagnosticResponses(1,:)={'Yes','','','Yes','Yes',''};
+    diagnosticResponses(2,:)={'No','Yes','','Yes','Yes',''};
+    diagnosticResponses(3,:)={'No','No','Yes','Yes','Yes',''};
+    diagnosticResponses(4,:)={'Yes','','','Yes','Yes','No'};
+    diagnosticResponses(5,:)={'No','Yes','','Yes','Yes','No'};
+    diagnosticResponses(6,:)={'No','No','Yes','Yes','Yes','No'};
+    diagnosticResponses(7,:)={'Yes','','','Yes','Yes','Yes'};
+    diagnosticResponses(8,:)={'No','Yes','','Yes','Yes','Yes'};
+    diagnosticResponses(9,:)={'No','No','Yes','Yes','Yes','Yes'};
+    diagnosticResponses(10,:)={'Yes','','','Yes','','Yes'};
+    diagnosticResponses(11,:)={'No','Yes','','Yes','','Yes'};
+    diagnosticResponses(12,:)={'No','No','Yes','Yes','','Yes'};
+    diagnosticResponses(13,:)={'Yes','','','Yes','No','Yes'};
+    diagnosticResponses(14,:)={'No','Yes','','Yes','No','Yes'};
+    diagnosticResponses(15,:)={'No','No','Yes','Yes','No','Yes'};
+
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryQuestions);
     
@@ -209,8 +231,7 @@ for thisSubject = 1:numSubjects
             diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses(ii,:));
             sumDiagnosticAnswerTest(ii)=sum(diagnosticAnswerTest);
         end
-        % If any of the patterns were found to match, then give this
-        % diagnosis
+        % If any of the patterns were found to match, then give this diagnosis
         if any(sumDiagnosticAnswerTest == length(diagnosticAnswerTest)) && MigraineWithOtherAuraFlag(thisSubject)
             if verbose
                 fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine with other aura!\n']);
@@ -312,7 +333,7 @@ for thisSubject = 1:numSubjects
     %% Migrane without aura
     % To qualify for migraine without aura, the candidate must not have
     %  received a diagnosis of Migraine with visual aura or Migraine with
-    %  other aura (Q1, Q3). They then must meet these criteria:
+    %  other aura (Q1 or Q39 or Q41) (Q3). They then must meet these criteria:
     %       1) give a specific set of yes/no responses (Q4, Q7)
     %       2) endorse 2/4 from symptom list 1 (Q5)
     %       3) endorse 1/3 from symptom list 2 (Q6)
@@ -321,11 +342,16 @@ for thisSubject = 1:numSubjects
         
         % Define the binary questions and the diagnostic responses
         binaryQuestions={'Do you get headaches?',...
+            'Have you ever had a headache?',...
+            'Have you ever had episodes of discomfort, pressure, or pain around your eyes or face?',...
             'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness such as the cold or the flu?',...
             'Do your headaches or discomfort episodes ever last more than 4 hours?',...
             'Have you had these headaches or discomfort episodes 5 or more times in your life?'};
-        clear diagnosticResponses
-        diagnosticResponses={'Yes','Yes','Yes','Yes'};
+        clear diagnosticResponses;
+        %For this section, binaryQuestions correspond to diagnosticResponses' columns (not rows)
+        diagnosticResponses(1,:)={'Yes','','','Yes','Yes','Yes'};
+        diagnosticResponses(2,:)={'No','Yes','','Yes','Yes','Yes'};
+        diagnosticResponses(3,:)={'No','No','Yes','Yes','Yes','Yes'};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, binaryQuestions);
@@ -334,9 +360,13 @@ for thisSubject = 1:numSubjects
         if all(questionExist)
             % Identify which columns of the table contain the relevant questions.
             questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryQuestions);
-            % determine if these columns contain the diagnostic responses
-            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-            if sum(diagnosticAnswerTest) == length(diagnosticAnswerTest) && MigraineWithoutAuraFlag(thisSubject)
+            % test these columns for each of the diagnostic response patterns
+            for ii = 1:size(diagnosticResponses,1)
+                diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses(ii,:));
+                sumDiagnosticAnswerTest(ii)=sum(diagnosticAnswerTest);
+            end
+            % If any of the patterns were found to match, then give this diagnosis
+            if any(sumDiagnosticAnswerTest == length(diagnosticAnswerTest)) && MigraineWithoutAuraFlag(thisSubject)
                 if verbose
                     fprintf(['Subject ' T.Properties.RowNames{thisSubject} ' met the first criterion for migraine without aura!\n']);
                 end
@@ -401,17 +431,17 @@ for thisSubject = 1:numSubjects
     
     
     %% Headache free
-    % Define the binary questions and the diagnostic response patterns (Q1, Q3, Q39, Q40, Q41)
+    % Define the binary questions and the diagnostic response patterns (Q1, Q39, Q41, Q3)
     binaryCriterionQuestions={'Do you get headaches?',...
-        'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness such as the cold or the flu?',...
         'Have you ever had a headache?',...
-        'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness like the cold or flu?',...
-        'Have you ever had episodes of discomfort, pressure, or pain around your eyes or face?'};
+        'Have you ever had episodes of discomfort, pressure, or pain around your eyes or face?',...
+        'Do you get headaches or episodes of eye or face discomfort that are NOT caused by a head injury, hangover, or illness such as the cold or the flu?'};
     clear diagnosticResponses
     %For this section, binaryCriterionQuestions correspond to diagnosticResponses' columns (not rows)
-    diagnosticResponses(1,:) = {'No','','No','','No'};
-    diagnosticResponses(2,:) = {'No','','Yes','No','No'};
-    diagnosticResponses(3,:) = {'Yes','No','','','No'};
+    diagnosticResponses(1,:) = {'No','No','No',''};
+    diagnosticResponses(2,:) = {'No','No','Yes','No'};
+    diagnosticResponses(3,:) = {'No','Yes','','No'};
+    diagnosticResponses(4,:) = {'Yes','','','No'};
     
     % Test if there is a column in the table for each question
     % KNOWN BUG - If no subjects have followed a path resulting in
@@ -467,26 +497,24 @@ for thisSubject = 1:numSubjects
         % 2. endorses symptoms suggestive of aura, even if they do not
         %       meet formal criteria for migraine with aura (Q8, Q23, Q85)
         % 3. endorses any of the migraine characteristics of sensory
-        %       sensivity, nausea/vomitting, exacerbation with activity (Q6, Q131, Q51, Q52)
+        %       sensivity, nausea/vomitting, exacerbation with activity (Q131, Q51, Q52)
         multiCriterionQuestions={'Do your headaches or discomfort episodes ever last more than 4 hours?',...
             'Around the time of your headaches or discomfort episodes, have you ever seen any of the following? (check all that apply)',...
             'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? (check all that apply)',...
             'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? Please check all that apply.',...
-            'During headaches or discomfort episodes that last longer than 4 hours, do you ever experience the following symptoms? Please check all that apply.',...
             'Do you usually get headaches around your menstrual periods?',...
             'For your WORST type of headache or discomfort episode, do any of the following statements describe your pain and symptoms? Please check all that apply.',...
             'During your WORST type of headache or discomfort episode, do you ever experience the following symptoms? Please check all that apply.'};
         
-        exclusionNumberNeeded=[1,1,1,1,1,1,1,1];
+        exclusionNumberNeeded=[1,1,1,1,1,1,1];
         clear exclusionAnswers
         exclusionAnswers(1,:) ={'Yes','','','','','',''};
         exclusionAnswers(2,:) ={'Spots','Stars','Lines','Flashing lights','Zigzag lines','Heat waves','Vision loss'};
         exclusionAnswers(3,:) ={'Numbness of your body or face','Tingling of your body or face','','','','',''};
         exclusionAnswers(4,:) ={'Trouble saying words correctly','Slurred speech','Unable to speak','','','',''};
-        exclusionAnswers(5,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
-        exclusionAnswers(6,:) ={'Yes','','','','','',''};
-        exclusionAnswers(7,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs','','','',''};
-        exclusionAnswers(8,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
+        exclusionAnswers(5,:) ={'Yes','','','','','',''};
+        exclusionAnswers(6,:) ={'The pain is pounding, pulsating, or throbbing','The pain is moderate or severe in intensity','The pain is made worse by routine activities such as walking or climbing stairs','','','',''};
+        exclusionAnswers(7,:) ={'Nausea and/or vomiting','Sensitivity to light','Sensitivity to sound','','','',''};
         
         % Test if there is a column in the table for each question
         questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
@@ -841,7 +869,7 @@ for thisSubject = 1:numSubjects
     
     
     %% Monthly Frequency
-    %  (Q117)
+    %  Should endorse headache frequency between 10-20 days a month (Q117)
     multiCriterionQuestions={'How often do you have these headaches or discomfort episodes in a typical month?'};
     emptyResponses={''};
     
@@ -900,7 +928,7 @@ for thisSubject = 1:numSubjects
     
     
     %% Aura recency
-    %  (Q47, Q48, Q88)
+    %  Should endorse aura recency within the past week, month, or year (Q47, Q48, Q88)
     binaryCriterionQuestions={'When was the last time you had these vision changes?',...
         'When was the last time you had this numbness and/or tingling?',...
         'When was the last time you had difficulty speaking?'};
