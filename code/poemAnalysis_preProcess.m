@@ -23,7 +23,7 @@ function [T, notesText] = poemAnalysis_preProcess(spreadSheetName, varargin)
 %
 % Examples:
 %{
-    spreadSheetName = '/Users/gerdinfalconi/Aguirre-Brainard Lab Dropbox/Gerdin Falconi/BLNK_data/POEM/GF_test/POEM_v2.4_May 4, 2023_15.38.csv';
+    spreadSheetName = '/Users/gerdinfalconi/Aguirre-Brainard Lab Dropbox/Gerdin Falconi/BLNK_data/POEM/GF_test/POEM_v2.4_June 30, 2023_16.52.csv';
     [T, notesText] = poemAnalysis_preProcess(spreadSheetName);
 %}
 

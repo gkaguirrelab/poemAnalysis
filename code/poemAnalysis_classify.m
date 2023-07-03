@@ -80,9 +80,10 @@ for thisSubject = 1:numSubjects
     %           - yes to headache questions (Q1 or Q39 or Q41) (Q3)
     %           - yes to question regarding visual aura (Q8); Q23 is ignored
     %           - yes to having more than 2 lifetime visual aura events (Q22)
-    %           - yes to aura symptom spreading (Q82)
+    %           - yes to aura symptom spreading over >= 5 minutes (Q82)
     %           - yes to aura symptom lasting 5-60 mins (Q70)
     %           - yes to aura symptom being unilateral (Q81)
+    %           - yes to two or more aura symptoms occuring in succession (Q148)
     %       2) multiple choice checkbox with one necessary and sufficient
     %          diagnostic answer: endorse having aura before/during headache (Q9)
     %       3) multiple choice radio button, with one diagnostic answer:
@@ -105,6 +106,7 @@ for thisSubject = 1:numSubjects
     
     % QuestionExist will all be true if a column was found for each question
     if all(questionExist)
+        clear sumDiagnosticAnswerTest;
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryQuestions);
         % test these columns for each of the diagnostic response patterns
@@ -135,26 +137,47 @@ for thisSubject = 1:numSubjects
         'Do these vision changes ever last 5-60 minutes?',...
         'Are the vision changes only on one side?',...
         'Around the time of your headaches or discomfort episodes, have you ever seen any of the following? (check all that apply)',...
-        'When do you see these visual phenomena in relation to your headaches or discomfort episodes? Please check all that apply.'};
+        'When do you see these visual phenomena in relation to your headaches or discomfort episodes? Please check all that apply.',...
+        'Do changes in vision, numbness/tingling, and or difficulty speaking happen at the same time?'};
     counter = 0;
-    diagnosticNumberNeeded=[1,1,1,1,1,1];
+    % For this section, multiCriterionQuestions(1:3) correspond to diagnosticResponses' columns (not rows)
+    clear diagnosticResponses;
+    diagnosticResponses(1,:) = {'Yes','Less than 5 min','Yes'};
+    diagnosticResponses(2,:) = {'Yes','5 min to 1 hour',''};
+    diagnosticResponses(3,:) = {'Yes','More than 1 hour','Yes'};
+    diagnosticResponses(4,:) = {'Yes','More than 1 hour','No'};
+    
+    diagnosticNumberNeeded=[1,1,1,1,1,1,1];
     clear diagnosticAnswers
-    diagnosticAnswers(1,:) = {'Yes','','','','','',''};
-    diagnosticAnswers(2,:) = {'5 min to 1 hour','','','','','',''};
-    diagnosticAnswers(3,:) = {'Yes','','','','','',''};
-    diagnosticAnswers(4,:) = {'Yes','','','','','',''};
-    diagnosticAnswers(5,:) = {'Spots','Stars','Lines','Flashing lights','Zigzag lines','Heat waves','Vision loss'};
-    diagnosticAnswers(6,:) = {'Before the headache/discomfort','During the headache/discomfort','','','','',''};
+    diagnosticAnswers(1,:) = {'Yes','','','','',''};
+    diagnosticAnswers(2,:) = {'5 min to 1 hour','','','','',''};
+    diagnosticAnswers(3,:) = {'Yes','','','','',''};
+    diagnosticAnswers(4,:) = {'Yes','','','','',''};
+    diagnosticAnswers(5,:) = {'Spots','Stars','Lines','Flashing lights','Zigzag lines','Heat waves'};
+    diagnosticAnswers(6,:) = {'Before the headache/discomfort','During the headache/discomfort','','','',''};
+    diagnosticAnswers(7,:) = {'No, one happens first and then another happens later','','','','',''};
     
     % Test if there is a column in the table for each question
     questionExist = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestions);
     
     % QuestionExist will all be true if a column was found for each question
     if all(questionExist)
+        clear sumDiagnosticAnswerTest;
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestions);
+        % test these columns for aura spread >= 5 minutes
+        for ii = 1:size(diagnosticResponses,1)
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx(1:3))),diagnosticResponses(ii,:));
+            sumDiagnosticAnswerTest(ii)=sum(diagnosticAnswerTest);
+        end
+        % If any of the patterns were found to match, then give this
+        % diagnosis
+        if any(sumDiagnosticAnswerTest == length(diagnosticAnswerTest)) && MigraineWithVisualAuraFlag(thisSubject)
+            counter = counter + 1;
+        end
+
         % Loop through the diagnostic questions
-        for qq=1:length(questionColumnIdx)
+        for qq=2:length(questionColumnIdx) % Aura spread is handled right above, start at qq=2
             % Get the answer string for this question
             answerString = table2cell(T(thisSubject,questionColumnIdx(qq)));
             % Test if the answer string contains enough diagnostic answers
@@ -183,9 +206,10 @@ for thisSubject = 1:numSubjects
     %           - yes to headache questions (Q1 or Q39 or Q41) (Q3)
     %           - yes to question regarding other aura (Q23 or Q85); Q8 is ignored
     %           - yes to having more than 2 lifetime other aura events (Q24 or Q86)
-    %           - yes to aura symptom spreading (Q84)(not applicable for speech aura)
+    %           - yes to aura symptom spreading over >= 5 minutes (Q84)(not applicable for speech aura)
     %           - yes to aura symptom lasting 5-60 mins (Q71 or Q90)
     %           - yes to aura symptom being unilateral (Q83 or Q85)
+    %           - yes to two or more aura symptoms occuring in succession (Q148)
     %       2) multiple choice checkbox with one necessary and sufficient
     %          diagnostic answer: endorse having aura before/during headache (Q25 or Q87)
     %       3) multiple choice radio button, with two diagnostic answers:
@@ -224,6 +248,7 @@ for thisSubject = 1:numSubjects
     
     % QuestionExist will all be true if a column was found for each question
     if all(questionExist)
+        clear sumDiagnosticAnswerTest;
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryQuestions);
         % test these columns for each of the diagnostic response patterns
@@ -255,16 +280,25 @@ for thisSubject = 1:numSubjects
         'Do these changes ever last 5-60 minutes?',...
         'Is the numbness and/or tingling only on one side of your body?',...
         'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? (check all that apply)',...
-        'When do you have this numbness and/or tingling? Please check all that apply.'};
+        'When do you have this numbness and/or tingling? Please check all that apply.',...
+        'Do changes in vision, numbness/tingling, and or difficulty speaking happen at the same time?'};
     counterSensory = 0;
-    diagnosticNumberNeededSensory=[1,1,1,1,1,1];
+    % For this section, multiCriterionQuestionsSensory(1:3) correspond to diagnosticResponses' columns (not rows)
+    clear diagnosticResponses;
+    diagnosticResponses(1,:) = {'Yes','Less than 5 min','Yes'};
+    diagnosticResponses(2,:) = {'Yes','5 min to 1 hour',''};
+    diagnosticResponses(3,:) = {'Yes','More than 1 hour','Yes'};
+    diagnosticResponses(4,:) = {'Yes','More than 1 hour','No'};
+
+    diagnosticNumberNeededSensory=[1,1,1,1,1,1,1];
     clear diagnosticAnswersSensory
     diagnosticAnswersSensory(1,:) = {'Yes',''};
     diagnosticAnswersSensory(2,:) = {'5 min to 1 hour',''};
     diagnosticAnswersSensory(3,:) = {'Yes',''};
     diagnosticAnswersSensory(4,:) = {'Yes',''};
-    diagnosticAnswersSensory(5,:) = {'Numbness of your body or face','Tingling of your body or face'};
+    diagnosticAnswersSensory(5,:) = {'Tingling of your body or face',''};
     diagnosticAnswersSensory(6,:) = {'Before the headache/discomfort','During the headache/discomfort'};
+    diagnosticAnswersSensory(7,:) = {'No, one happens first and then another happens later',''};
     
     % Aura symptom spreading is not applicable for speech aura.
     % Q85 determines both if aura symptom is positive and if aura symptom
@@ -273,15 +307,17 @@ for thisSubject = 1:numSubjects
         'Do these speaking changes ever last 5-60 minutes?',...
         'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? Please check all that apply.',...
         'Have you ever had any of the following happen around the time of your headaches or discomfort episodes? Please check all that apply.',...
-        'When do you have difficulty speaking? Please check all that apply.'};
+        'When do you have difficulty speaking? Please check all that apply.',...
+        'Do changes in vision, numbness/tingling, and or difficulty speaking happen at the same time?'};
     counterSpeech = 0;
-    diagnosticNumberNeededSpeech=[1,1,1,1,1];
+    diagnosticNumberNeededSpeech=[1,1,1,1,1,1];
     clear diagnosticAnswersSpeech
-    diagnosticAnswersSpeech(1,:) = {'5 min to 1 hour','',''};
-    diagnosticAnswersSpeech(2,:) = {'Yes','',''};
-    diagnosticAnswersSpeech(3,:) = {'Trouble saying words correctly','Unable to speak',''}; % checks if unilateral
-    diagnosticAnswersSpeech(4,:) = {'Trouble saying words correctly','Slurred speech','Unable to speak'};
-    diagnosticAnswersSpeech(5,:) = {'Before the headache/discomfort','During the headache/discomfort',''};
+    diagnosticAnswersSpeech(1,:) = {'5 min to 1 hour',''};
+    diagnosticAnswersSpeech(2,:) = {'Yes',''};
+    diagnosticAnswersSpeech(3,:) = {'Trouble saying words correctly','Unable to speak'}; % checks if unilateral
+    diagnosticAnswersSpeech(4,:) = {'',''}; % checks if positive aura symptom
+    diagnosticAnswersSpeech(5,:) = {'Before the headache/discomfort','During the headache/discomfort'};
+    diagnosticAnswersSpeech(6,:) = {'No, one happens first and then another happens later',''};
     
     % Test if there is a column in the table for each question
     questionExistSensory = cellfun(@(x) sum(strcmp(QuestionText,x))==1, multiCriterionQuestionsSensory);
@@ -289,11 +325,23 @@ for thisSubject = 1:numSubjects
     
     % QuestionExist will all be true if a column was found for each question
     if all(questionExistSensory) && all(questionExistSpeech)
+        clear sumDiagnosticAnswerTest;
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdxSensory = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestionsSensory);
         questionColumnIdxSpeech = cellfun(@(x) find(strcmp(QuestionText,x)), multiCriterionQuestionsSpeech);
+        % test these columns for aura spread >= 5 minutes
+        for ii = 1:size(diagnosticResponses,1)
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdxSensory(1:3))),diagnosticResponses(ii,:));
+            sumDiagnosticAnswerTest(ii)=sum(diagnosticAnswerTest);
+        end
+        % If any of the patterns were found to match, then give this
+        % diagnosis
+        if any(sumDiagnosticAnswerTest == length(diagnosticAnswerTest)) && MigraineWithOtherAuraFlag(thisSubject)
+            counterSensory = counterSensory + 1;
+        end
+
         % Loop through the sensory diagnostic questions
-        for qq=1:length(questionColumnIdxSensory)
+        for qq=2:length(questionColumnIdxSensory) % Aura spread is handled right above, start at qq=2
             % Get the answer string for this question
             answerStringSensory = table2cell(T(thisSubject,questionColumnIdxSensory(qq)));
             % Test if the answer string contains enough diagnostic answers
@@ -358,6 +406,7 @@ for thisSubject = 1:numSubjects
         
         % QuestionExist will all be true if a column was found for each question
         if all(questionExist)
+            clear sumDiagnosticAnswerTest;
             % Identify which columns of the table contain the relevant questions.
             questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryQuestions);
             % test these columns for each of the diagnostic response patterns
@@ -451,6 +500,7 @@ for thisSubject = 1:numSubjects
     
     % QuestionExist will all be true if a column was found for each question
     if all(questionExist)
+        clear sumDiagnosticAnswerTest;
         % Identify which columns of the table contain the relevant questions.
         questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
         % test these columns for each of the diagnostic response patterns

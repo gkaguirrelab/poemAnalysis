@@ -4,14 +4,14 @@
 % function
 functionPath = mfilename('fullpath');
 functionPathParts = strsplit(functionPath,filesep);
-rawDataPath = fullfile(functionPathParts{1:end-2},'data','unitTestRawResponses.csv');
+rawDataPath = fullfile(functionPathParts{1:end-2},'data','unitTestRawResponsesV2.csv');
 rawDataPath = [filesep rawDataPath];
 
 % Specify the location of the unitTestDiagnosisTable relative to this
 % function
-diagnosisPathTable = fullfile(functionPathParts{1:end-2},'data','unitTestDiagnosisTable.csv');
+diagnosisPathTable = fullfile(functionPathParts{1:end-2},'data','unitTestDiagnosisTableV2.csv');
 diagnosisPathTable = [filesep diagnosisPathTable];
-diagnosisPathMat = fullfile(functionPathParts{1:end-2},'data','unitTestDiagnosisTable.mat');
+diagnosisPathMat = fullfile(functionPathParts{1:end-2},'data','unitTestDiagnosisTableV2.mat');
 diagnosisPathMat = [filesep diagnosisPathMat];
 
 
