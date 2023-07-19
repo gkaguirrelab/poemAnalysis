@@ -23,16 +23,15 @@ diagnoses={'HeadacheFree',...
     'InterictalPhotophobia',...
     'IctalAllodyniaScore',...
     'InterictalAllodynia',...
+    'LightSensitiveEyes',...
     'ChildhoodMotionSickness',...
     'FamHxOfHeadache',...
     'Ophthalmology',...
     'FrequencyMonthly',...
     'RecencyMigraine',...
-    'RecencyVisualAura',...
-    'RecencySensoryAura',...
-    'RecencySpeechAura',...
     'RecencyAnyAura',...
-    'SeriousnessQuestion'};
+    'SincerityQuestion',...
+    'FutureContact'};
 
 % Pull the QuestionText out of the table properties (Important: Code assumes all POEM questions are unique, in order to work properly (e.g. when finding column ids))
 QuestionText=T.Properties.UserData.QuestionText;
@@ -57,15 +56,14 @@ InterictalAllodynia=false(numSubjects, 1);
 RecencyAnyAura = false(numSubjects, 1);
 % These next set of data columns contain the strings copied over from the
 % answer text, and default to empty.
+LightSensitiveEyes = cell(numSubjects, 1);
 ChildhoodMotionSickness = cell(numSubjects, 1);
 FamHxOfHeadache = cell(numSubjects, 1);
 Ophthalmology = cell(numSubjects, 1);
 FrequencyMonthly = cell(numSubjects, 1);
 RecencyMigraine = cell(numSubjects, 1);
-RecencyVisualAura = cell(numSubjects, 1);
-RecencySensoryAura = cell(numSubjects, 1);
-RecencySpeechAura = cell(numSubjects, 1);
-SeriousnessQuestion = cell(numSubjects, 1);
+SincerityQuestion = cell(numSubjects, 1);
+FutureContact = cell(numSubjects, 1);
 
 % At least 3 of multiple characteristics must be met in order to qualify as
 % migraine with a type of aura
@@ -820,6 +818,37 @@ for thisSubject = 1:numSubjects
     end
     
     
+    %% Eyes sensitive to light
+    % What was the response? (Q77)
+    
+    binaryCriterionQuestions={'Are your eyes sensitive to light?'};
+    emptyResponses={''};
+    
+    % Test if there is a single column in the table for this question
+    questionExist = sum(strcmp(QuestionText,binaryCriterionQuestions{1}))==1;
+    
+    % QuestionExist will all be true if a column was found for each question
+    if questionExist
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if this column is empty. If so, this subject has
+        % not completed the family history question (which should never
+        % happen)
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            LightSensitiveEyes(thisSubject) = {''};
+        else
+            % Copy over the response string
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+            LightSensitiveEyes(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+        end % binary test
+    else
+        % If no subject has answered the family history question, then
+        % make sure that all entries continue to be empty
+        LightSensitiveEyes(thisSubject) = {''};
+    end
+    
+    
     %% History of childhood motion sickness
     % The subject answers this if they did not go down a migraine path (Q63)
     
@@ -1000,11 +1029,7 @@ for thisSubject = 1:numSubjects
         % happen)
         emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
 
-        if emptyAnswerTest(1)
-            RecencyVisualAura(thisSubject) = {''};
-        else
-            % Copy over the response string
-            RecencyVisualAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(1)));
+        if ~(emptyAnswerTest(1))
             % Test if at least one kind of aura is recent. Within the past
             % week, month, or year is considered recent.
             diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(1))), x), diagnosticAnswers(1,:));
@@ -1013,11 +1038,7 @@ for thisSubject = 1:numSubjects
             end
         end
 
-        if emptyAnswerTest(2)
-            RecencySensoryAura(thisSubject) = {''};
-        else
-            % Copy over the response string
-            RecencySensoryAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(2)));
+        if ~(emptyAnswerTest(2))
             % Test if at least one kind of aura is recent. Within the past
             % week, month, or year is considered recent.
             diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(2))), x), diagnosticAnswers(2,:));
@@ -1026,11 +1047,7 @@ for thisSubject = 1:numSubjects
             end
         end
 
-        if emptyAnswerTest(3)
-            RecencySpeechAura(thisSubject) = {''};
-        else
-            % Copy over the response string
-            RecencySpeechAura(thisSubject) = table2cell(T(thisSubject,questionColumnIdx(3)));
+        if ~(emptyAnswerTest(3))
             % Test if at least one kind of aura is recent. Within the past
             % week, month, or year is considered recent.
             diagnosticAnswerTest=cellfun(@(x) strcmp(table2cell(T(thisSubject,questionColumnIdx(3))), x), diagnosticAnswers(3,:));
@@ -1038,16 +1055,10 @@ for thisSubject = 1:numSubjects
                 RecencyAnyAura(thisSubject) = true;
             end
         end
-    else
-        % If no subject has answered the headache recency question, then
-        % make sure that all entries continue to be empty
-        RecencyVisualAura(thisSubject) = {''};
-        RecencySensoryAura(thisSubject) = {''};
-        RecencySpeechAura(thisSubject) = {''};
     end
     
     
-    %% Question regarding errors or seriousness
+    %% Question regarding errors or sincerity
     % What was the response? (Q68)
     
     binaryCriterionQuestions={'Are your answers sincere? Are they correct?'};
@@ -1065,16 +1076,47 @@ for thisSubject = 1:numSubjects
         % happen)
         emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
         if any(emptyAnswerTest)
-            SeriousnessQuestion(thisSubject) = {''};
+            SincerityQuestion(thisSubject) = {''};
         else
             % Copy over the response string
             diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
-            SeriousnessQuestion(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+            SincerityQuestion(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
         end % binary test
     else
         % If no subject has answered the family history question, then
         % make sure that all entries continue to be empty
-        SeriousnessQuestion(thisSubject) = {''};
+        SincerityQuestion(thisSubject) = {''};
+    end
+    
+    
+    %% Question regarding contact in future studies
+    % What was the response? (Q69)
+    
+    binaryCriterionQuestions={'May we contact you about future projects in headache research?'};
+    emptyResponses={''};
+    
+    % Test if there is a single column in the table for this question
+    questionExist = sum(strcmp(QuestionText,binaryCriterionQuestions{1}))==1;
+    
+    % QuestionExist will all be true if a column was found for each question
+    if questionExist
+        % Identify which columns of the table contain the relevant questions.
+        questionColumnIdx = cellfun(@(x) find(strcmp(QuestionText,x)), binaryCriterionQuestions);
+        % Test if this column is empty. If so, this subject has
+        % not completed the family history question (which should never
+        % happen)
+        emptyAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),emptyResponses);
+        if any(emptyAnswerTest)
+            FutureContact(thisSubject) = {''};
+        else
+            % Copy over the response string
+            diagnosticAnswerTest = strcmp(table2cell(T(thisSubject,questionColumnIdx)),diagnosticResponses);
+            FutureContact(thisSubject) = table2cell(T(thisSubject,questionColumnIdx));
+        end % binary test
+    else
+        % If no subject has answered the family history question, then
+        % make sure that all entries continue to be empty
+        FutureContact(thisSubject) = {''};
     end
     
 end % loop over subjects
@@ -1091,16 +1133,15 @@ diagnosisTable=table(HeadacheFreeFlag, ...
     InterictalPhotophobia, ...
     IctalAllodyniaScore, ...
     InterictalAllodynia, ...
+    LightSensitiveEyes, ...
     ChildhoodMotionSickness, ...
     FamHxOfHeadache, ...
     Ophthalmology, ...
     FrequencyMonthly, ...
     RecencyMigraine, ...
-    RecencyVisualAura, ...
-    RecencySensoryAura, ...
-    RecencySpeechAura, ...
     RecencyAnyAura, ...
-    SeriousnessQuestion);
+    SincerityQuestion, ...
+    FutureContact);
 diagnosisTable.Properties.VariableNames=diagnoses;
 diagnosisTable.Properties.RowNames=T.Properties.RowNames;
 
