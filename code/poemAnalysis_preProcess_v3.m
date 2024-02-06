@@ -38,16 +38,12 @@ p.parse(spreadSheetName,varargin{:})
 %% Hardcoded variables and housekeeping
 notesText=cellstr(spreadSheetName);
 
-% This is the format of time stamps returned by Qualtrics
-dateTimeFormatA='yyyy-MM-dd HH:mm:SS';
-dateTimeFormatB='MM/dd/yy HH:mm';
-
 %% Read in the table. Suppress some routine warnings.
 warning('off','MATLAB:table:ModifiedAndSavedVarnames');
 warning('off','MATLAB:table:ModifiedVarnames');
 T=readtable(spreadSheetName);
 
-%% Clean the table
+%% Organize the table
 % replace variable names, and switch data to categorical
 
 
@@ -61,8 +57,8 @@ T.Properties.VariableNames = {'StartDate','EndDate','Status','IPAddress','Progre
     'VisAuraRecent','VisAuraDur','VisAuraUni','VisAuraSpread','VisAuraDur_yn','SensAura2orMore','SensAuraHArelation',...
     'SensAuraRecent','SensAuraDur','SensAuraUni','SensAuraSpread','SensAuraDur_yn','SpeechAura2orMore','SpeechAuraHArelation','SpeechAuraHArecent'...
     'SpeechAuraDur','SpeechAuraDur_yn','menstrualMig','CAMS','contHA','contHAsomeBreaks','HAmissedWork3mo','HAimpactWork3mo','HAmissedHousework3mo',...
-    'HAimpactHousework3mo','HAmissedSocial3mo','HAdays3mo','SeverityHA','MotionSick','MigFamHx','Choi_HA','Choi_Dizzy','Choi_EyeStrain',...
-    'Choi_BlurryVision','Choi_LightIntolerant','Choi_Anxiety','Fluorescent','Flicker','Headlight','OutdoorGlare','Screen','Sunlight',...
+    'HAimpactHousework3mo','HAmissedSocial3mo','HAdays3mo','SeverityHA','MotionSick','MigFamHx','Light_HA','Light_Dizzy','Light_EyeStrain',...
+    'Light_BlurryVision','Light_LightIntolerant','Light_Anxiety','Fluorescent','Flicker','Headlight','OutdoorGlare','Screen','Sunlight',...
     'FlickeringTrees','LightSensitivity','SunglassesSunlight','SunglassesIndoors','SeekDarkness','LightTvLimit','LightDeviceLimit',...
     'LightShopsLimit','LightDriveLimit','LightWorkLimit','LightOutdoorLimit','AllodyniaComb','AllodyniaPonytail','AllodyniaShave',...
     'AllodyniaEyeGlasses','AllodyniaContacts','AllodyniaEarrings','AllodyniaNecklace','AllodyniaTightClothes','AllodyniaShower',...
@@ -217,6 +213,36 @@ T.allodynia_score = sum([T.allodynia1 T.allodynia2 T.allodynia3 T.allodynia4 T.a
     T.allodynia11 T.allodynia12],2);
 
 % Specific symptoms
+
+% photophobia symptoms
+
+% CAMS symptoms
+T.photophobia = zeros(height(T),1);
+T.photophobia(contains(string(T.MigCritD),'Sensitivity to light')==1) = 1;
+T.phonophobia = zeros(height(T),1);
+T.phonophobia(contains(string(T.MigCritD),'Sensitivity to sound')==1) = 1;
+T.osmophobia = zeros(height(T),1);
+T.osmophobia(contains(string(T.CAMS),'Smell sensitivity')==1) = 1;
+T.nausea_vomit = zeros(height(T),1);
+T.nausea_vomit(contains(string(T.MigCritD),'Nausea')==1) = 1;
+T.lightheaded = zeros(height(T),1);
+T.lightheaded(contains(string(T.CAMS),'Light headedness')==1) = 1;
+T.blurryVision = zeros(height(T),1);
+T.blurryVision(contains(string(T.CAMS),'Blurry vision')==1) = 1;
+T.thinking = zeros(height(T),1);
+T.thinking(contains(string(T.CAMS),'Difficulty thinking')==1) = 1;
+T.neckPain = zeros(height(T),1);
+T.neckPain(contains(string(T.CAMS),'Neck pain')==1) = 1;
+T.balance = zeros(height(T),1);
+T.balance(contains(string(T.CAMS),'Balance problems')==1) = 1;
+T.spinning = zeros(height(T),1);
+T.spinning(contains(string(T.CAMS),'Room spinning')==1) = 1;
+T.ringing = zeros(height(T),1);
+T.ringing(contains(string(T.CAMS),'Ear ringing')==1) = 1;
+T.doubleVision = zeros(height(T),1);
+T.dounleVision(contains(string(T.CAMS),'DOuble vision')==1) = 1;
+
+% visual symptoms
 T.visZigzag = zeros(height(T),1);
 T.visZigzag(contains(string(T.VisAura),'Zigzag lines')==1) = 1;
 T.visFlash = zeros(height(T),1);
@@ -231,85 +257,146 @@ T.visLines = zeros(height(T),1);
 T.visLines(contains(string(T.VisAura),'Lines')==1) = 1;
 T.visLoss = zeros(height(T),1);
 T.visLoss(contains(string(T.VisAura),'Vision loss')==1) = 1;
+
+% photophobia symptoms
+T.lightHA = zeros(height(T),1);
+T.lightHA(contains(string(T.Light_HA),'Rarely')==1) = 1;
+T.lightHA(contains(string(T.Light_HA),'Sometimes')==1) = 2;
+T.lightHA(contains(string(T.Light_HA),'Often')==1) = 3;
+T.lightHA(contains(string(T.Light_HA),'Always')==1) = 4;
+
+T.lightDizzy = zeros(height(T),1);
+T.lightDizzy(contains(string(T.Light_Dizzy),'Rarely')==1) = 1;
+T.lightDizzy(contains(string(T.Light_Dizzy),'Sometimes')==1) = 2;
+T.lightDizzy(contains(string(T.Light_Dizzy),'Often')==1) = 3;
+T.lightDizzy(contains(string(T.Light_Dizzy),'Always')==1) = 4;
+
+T.lightEyeStrain = zeros(height(T),1);
+T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Rarely')==1) = 1;
+T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Sometimes')==1) = 2;
+T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Often')==1) = 3;
+T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Always')==1) = 4;
+
+T.lightBlurryVision = zeros(height(T),1);
+T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Rarely')==1) = 1;
+T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Sometimes')==1) = 2;
+T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Often')==1) = 3;
+T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Always')==1) = 4;
+
+T.lightIntolerant = zeros(height(T),1);
+T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Rarely')==1) = 1;
+T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Sometimes')==1) = 2;
+T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Often')==1) = 3;
+T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Always')==1) = 4;
+
+T.lightAnxiety = zeros(height(T),1);
+T.lightAnxiety(contains(string(T.Light_Anxiety),'Rarely')==1) = 1;
+T.lightAnxiety(contains(string(T.Light_Anxiety),'Sometimes')==1) = 2;
+T.lightAnxiety(contains(string(T.Light_Anxiety),'Often')==1) = 3;
+T.lightAnxiety(contains(string(T.Light_Anxiety),'Always')==1) = 4;
+
+T.lightFluorescent = zeros(height(T),1);
+T.lightFluorescent(contains(string(T.Fluorescent),'Rarely')==1) = 1;
+T.lightFluorescent(contains(string(T.Fluorescent),'Sometimes')==1) = 2;
+T.lightFluorescent(contains(string(T.Fluorescent),'Often')==1) = 3;
+T.lightFluorescent(contains(string(T.Fluorescent),'Always')==1) = 4;
+
+T.lightFlicker = zeros(height(T),1);
+T.lightFlicker(contains(string(T.Flicker),'Rarely')==1) = 1;
+T.lightFlicker(contains(string(T.Flicker),'Sometimes')==1) = 2;
+T.lightFlicker(contains(string(T.Flicker),'Often')==1) = 3;
+T.lightFlicker(contains(string(T.Flicker),'Always')==1) = 4;
+
+T.lightHeadlight = zeros(height(T),1);
+T.lightHeadlight(contains(string(T.Headlight),'Rarely')==1) = 1;
+T.lightHeadlight(contains(string(T.Headlight),'Sometimes')==1) = 2;
+T.lightHeadlight(contains(string(T.Headlight),'Often')==1) = 3;
+T.lightHeadlight(contains(string(T.Headlight),'Always')==1) = 4;
+
+T.lightOutdoorGlare = zeros(height(T),1);
+T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Rarely')==1) = 1;
+T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Sometimes')==1) = 2;
+T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Often')==1) = 3;
+T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Always')==1) = 4;
+
+T.lightScreen = zeros(height(T),1);
+T.lightScreen(contains(string(T.Screen),'Rarely')==1) = 1;
+T.lightScreen(contains(string(T.Screen),'Sometimes')==1) = 2;
+T.lightScreen(contains(string(T.Screen),'Often')==1) = 3;
+T.lightScreen(contains(string(T.Screen),'Always')==1) = 4;
+
+T.lightSunlight = zeros(height(T),1);
+T.lightSunlight(contains(string(T.Sunlight),'Rarely')==1) = 1;
+T.lightSunlight(contains(string(T.Sunlight),'Sometimes')==1) = 2;
+T.lightSunlight(contains(string(T.Sunlight),'Often')==1) = 3;
+T.lightSunlight(contains(string(T.Sunlight),'Always')==1) = 4;
+
+T.lightTrees = zeros(height(T),1);
+T.lightTrees(contains(string(T.FlickeringTrees),'Rarely')==1) = 1;
+T.lightTrees(contains(string(T.FlickeringTrees),'Sometimes')==1) = 2;
+T.lightTrees(contains(string(T.FlickeringTrees),'Often')==1) = 3;
+T.lightTrees(contains(string(T.FlickeringTrees),'Always')==1) = 4;
+
+T.lightGlassesSun = zeros(height(T),1);
+T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Rarely')==1) = 1;
+T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Sometimes')==1) = 2;
+T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Often')==1) = 3;
+T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Always')==1) = 4;
+
+T.lightGlassesInd = zeros(height(T),1);
+T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Rarely')==1) = 1;
+T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Sometimes')==1) = 2;
+T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Often')==1) = 3;
+T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Always')==1) = 4;
+
+T.lightSeekDark = zeros(height(T),1);
+T.lightSeekDark(contains(string(T.SeekDarkness),'Rarely')==1) = 1;
+T.lightSeekDark(contains(string(T.SeekDarkness),'Sometimes')==1) = 2;
+T.lightSeekDark(contains(string(T.SeekDarkness),'Often')==1) = 3;
+T.lightSeekDark(contains(string(T.SeekDarkness),'Always')==1) = 4;
+
+T.lightLimTV = zeros(height(T),1);
+T.lightLimTV(contains(string(T.LightTvLimit),'Rarely')==1) = 1;
+T.lightLimTV(contains(string(T.LightTvLimit),'Sometimes')==1) = 2;
+T.lightLimTV(contains(string(T.LightTvLimit),'Often')==1) = 3;
+T.lightLimTV(contains(string(T.LightTvLimit),'Always')==1) = 4;
+
+T.lightLimDevice = zeros(height(T),1);
+T.lightLimDevice(contains(string(T.LightDeviceLimit),'Rarely')==1) = 1;
+T.lightLimDevice(contains(string(T.LightDeviceLimit),'Sometimes')==1) = 2;
+T.lightLimDevice(contains(string(T.LightDeviceLimit),'Often')==1) = 3;
+T.lightLimDevice(contains(string(T.LightDeviceLimit),'Always')==1) = 4;
+
+T.lightLimShops = zeros(height(T),1);
+T.lightLimShops(contains(string(T.LightShopsLimit),'Rarely')==1) = 1;
+T.lightLimShops(contains(string(T.LightShopsLimit),'Sometimes')==1) = 2;
+T.lightLimShops(contains(string(T.LightShopsLimit),'Often')==1) = 3;
+T.lightLimShops(contains(string(T.LightShopsLimit),'Always')==1) = 4;
+
+T.lightLimDrive = zeros(height(T),1);
+T.lightLimDrive(contains(string(T.LightDriveLimit),'Rarely')==1) = 1;
+T.lightLimDrive(contains(string(T.LightDriveLimit),'Sometimes')==1) = 2;
+T.lightLimDrive(contains(string(T.LightDriveLimit),'Often')==1) = 3;
+T.lightLimDrive(contains(string(T.LightDriveLimit),'Always')==1) = 4;
+
+T.lightLimWork = zeros(height(T),1);
+T.lightLimWork(contains(string(T.LightWorkLimit),'Rarely')==1) = 1;
+T.lightLimWork(contains(string(T.LightWorkLimit),'Sometimes')==1) = 2;
+T.lightLimWork(contains(string(T.LightWorkLimit),'Often')==1) = 3;
+T.lightLimWork(contains(string(T.LightWorkLimit),'Always')==1) = 4;
+
+T.lightLimOutdoor = zeros(height(T),1);
+T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Rarely')==1) = 1;
+T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Sometimes')==1) = 2;
+T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Often')==1) = 3;
+T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Always')==1) = 4;
+
 %% Sanity check the table
 
 % Remove rows for which "Finished" is False
 idxTrueFinishedStatus=cellfun(@(x) ~strcmpi(x,'FALSE'), T.Finished);
 T=T(idxTrueFinishedStatus,:);
 
-% Check for duplicate subject ID names. There are two choices as to how to
-% handle duplicates. The first option is to assign unique subjectID names
-% to each duplicated original subjectID. The second option is to simply
-% discard all duplicates except for the most recent set of responses for
-% that subject.
-uniqueSubjectIDs=unique(T.SubjectID);
-k=cellfun(@(x) find(strcmp(T.SubjectID, x)==1), unique(T.SubjectID), 'UniformOutput', false);
-replicateSubjectIDsIdx=find(cellfun(@(x) x>1,cellfun(@(x) size(x,1),k,'UniformOutput', false)));
 
-% We have detected duplicates. What should we do?
-if ~isempty(replicateSubjectIDsIdx)
-    
-    % Append index numbers to render duplicated subject IDs unique
-    if p.Results.retainDuplicateSubjectIDs
-        for ii=1:length(replicateSubjectIDsIdx)
-            SubjectIDText=uniqueSubjectIDs{replicateSubjectIDsIdx(ii)};
-            subjectIDColumn=find(strcmp(T.SubjectID,SubjectIDText));
-            for jj=1:length(subjectIDColumn)
-                T.SubjectID{subjectIDColumn(jj)}=[T.SubjectID{subjectIDColumn(jj)} '___' char(48+jj)];
-            end
-        end
-        
-    % Alternatively, delete rows that are duplicates, retaining only the
-    % final set of responses for this subjectID
-    % THIS IS A BAD HACK. IT CURRENTLY ONLY DISCARDS THE FIRST OF n
-    % DUPLICATES. NEED TO RE-WRITE TO USE TIME THE TEST WAS TAKEN TO GUIDE
-    % THIS.
-    
-    else
-        for ii=1:length(replicateSubjectIDsIdx)
-            SubjectIDText=uniqueSubjectIDs{replicateSubjectIDsIdx(ii)};
-            subjectIDColumn=find(strcmp(T.SubjectID,SubjectIDText));
-            idxToKeep = ((1:1:size(T,1)) ~= subjectIDColumn(1));
-            T = T(idxToKeep,:);
-        end
-    end
-end
-
-% Assign subject ID as the row name property for the table
-T.Properties.RowNames=T.SubjectID;
-
-% Convert the timestamps to datetime format
-timeStampLabels={'StartDate','EndDate'};
-for ii=1:length(timeStampLabels)
-    subjectIDColumn=find(strcmp(T.Properties.VariableNames,timeStampLabels{ii}));
-    if ~isempty(subjectIDColumn)
-        columnHeader = T.Properties.VariableNames(subjectIDColumn(1));
-        cellTextTimetamp=table2cell(T(:,subjectIDColumn(1)));
-        % Not sure what the format is of the date time string. Try one. If
-        % error try the other. I am aware that this is an ugly hack.
-        try
-            tableDatetime=table(datetime(cellTextTimetamp,'InputFormat',dateTimeFormatA));
-        catch
-            tableDatetime=table(datetime(cellTextTimetamp,'InputFormat',dateTimeFormatB));
-        end
-        tableDatetime.Properties.VariableNames{1}=columnHeader{1};
-        tableDatetime.Properties.RowNames=T.SubjectID;
-        switch subjectIDColumn(1)
-            case 1
-                subTableRight=T(:,subjectIDColumn(1)+1:end);
-                T=[tableDatetime subTableRight];
-            case size(T,2)
-                subTableLeft=T(:,1:subjectIDColumn(1)-1);
-                T=[subTableLeft tableDatetime];
-            otherwise
-                subTableLeft=T(:,1:subjectIDColumn(1)-1);
-                subTableRight=T(:,subjectIDColumn(1)+1:end);
-                T=[subTableLeft tableDatetime subTableRight];
-        end % switch
-    end
-end
-
-% Transpose the notesText for ease of subsequent display
-notesText=notesText';
 
 end % function
