@@ -111,11 +111,14 @@ T.sensAuraICHD_C1(categorical(T.SensAuraSpread)=='Yes') = 1;
 T.AuraICHD_C2 = zeros(height(T),1);
 T.AuraICHD_C2(contains(string(T.MultiSxAura_sametime),'No')==1) = 1;
 T.visAuraICHD_C3 = zeros(height(T),1);
-T.visAuraICHD_C3(categorical(T.VisAuraDur_yn)=='Yes') = 1;
+T.visAuraICHD_C3(contains(string(T.VisAuraDur),'5 minutes to 1')==1) = 1;
+% T.visAuraICHD_C3(categorical(T.VisAuraDur_yn)=='Yes') = 1;
 T.sensAuraICHD_C3 = zeros(height(T),1);
-T.sensAuraICHD_C3(categorical(T.SensAuraDur_yn)=='Yes') = 1;
+T.sensAuraICHD_C3(contains(string(T.SensAuraDur),'5 minutes to 1')==1) = 1;
+% T.sensAuraICHD_C3(categorical(T.SensAuraDur_yn)=='Yes') = 1;
 T.speechAuraICHD_C3 = zeros(height(T),1);
-T.speechAuraICHD_C3(categorical(T.SpeechAuraDur_yn)=='Yes') = 1;
+% T.speechAuraICHD_C3(categorical(T.SpeechAuraDur_yn)=='Yes') = 1;
+T.speechAuraICHD_C3(contains(string(T.VisAuraDur),'5 minutes to 1')==1) = 1;
 T.visAuraICHD_C4 = zeros(height(T),1);
 T.visAuraICHD_C4(categorical(T.VisAuraUni)=='Yes') = 1;
 T.sensAuraICHD_C4 = zeros(height(T),1);
@@ -133,6 +136,9 @@ T.sensAuraICHD_C6 = zeros(height(T),1);
 T.sensAuraICHD_C6(contains(string(T.SensAuraHArelation),'Before the headache')==1|contains(string(T.SensAuraHArelation),'During the headache')==1) = 1;
 T.speechAuraICHD_C6 = zeros(height(T),1);
 T.speechAuraICHD_C6(contains(string(T.SpeechAuraHArelation),'Before the headache')==1|contains(string(T.SpeechAuraHArelation),'During the headache')==1) = 1;
+T.visAuraICHD_C = sum([T.visAuraICHD_C1 T.AuraICHD_C2 T.visAuraICHD_C3 T.visAuraICHD_C4 T.visAuraICHD_C5 T.visAuraICHD_C6],2);
+T.sensAuraICHD_C = sum([T.sensAuraICHD_C1 T.AuraICHD_C2 T.sensAuraICHD_C3 T.sensAuraICHD_C4 T.sensAuraICHD_C5 T.sensAuraICHD_C6],2);
+T.speechAuraICHD_C = sum([T.AuraICHD_C2 T.speechAuraICHD_C3 T.speechAuraICHD_C4 T.speechAuraICHD_C6],2);
 
 % organize pseudo MIDAS scores
 T.MIDAS1 = zeros(height(T),1);
@@ -240,7 +246,7 @@ T.spinning(contains(string(T.CAMS),'Room spinning')==1) = 1;
 T.ringing = zeros(height(T),1);
 T.ringing(contains(string(T.CAMS),'Ear ringing')==1) = 1;
 T.doubleVision = zeros(height(T),1);
-T.dounleVision(contains(string(T.CAMS),'DOuble vision')==1) = 1;
+T.doubleVision(contains(string(T.CAMS),'Double vision')==1) = 1;
 
 % visual symptoms
 T.visZigzag = zeros(height(T),1);
@@ -390,6 +396,11 @@ T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Rarely')==1) = 1;
 T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Sometimes')==1) = 2;
 T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Often')==1) = 3;
 T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Always')==1) = 4;
+
+T.lightSx_score = sum([T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety],2);
+T.lightBother_score = sum([T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight T.lightScreen],2);
+T.lightAvoidance_score = sum([T.lightGlassesSun T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
+    T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor],2);
 
 %% Sanity check the table
 

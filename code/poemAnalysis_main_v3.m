@@ -23,11 +23,11 @@ dataDir = '/Users/carlynpattersongentile/Documents/data/poem/';
 analysisDir = '/Users/carlynpattersongentile/Documents/analysis/poem/';
 
 % Set the output filenames
-outputResultExcelName=fullfile(dataDir, 'POEM_v3.0_January 8, 2024_17.32.csv');
-rawDataSheets={'POEM_v3.0_January 8, 2024_17.32.csv'};
+outputResultExcelName = fullfile(dataDir, 'POEM_v3.0_January 8, 2024_17.32.csv');
+rawDataSheets = {'POEM_v3.0_January 8, 2024_17.32.csv'};
 
 % get the full path to thisDataSheet
-thisDataSheetFileName=fullfile(dataDir, rawDataSheets{1});
+thisDataSheetFileName = fullfile(dataDir, rawDataSheets{1});
 
 
 %% load and pre-process thisDataSheet, returning table "T"
@@ -35,6 +35,5 @@ thisDataSheetFileName=fullfile(dataDir, rawDataSheets{1});
 
 
 %% classify headache based upon table T
-diagnosisTable = poemAnalysis_classify( T );
-writetable(diagnosisTable,outputResultExcelName,'Range','A4','WriteRowNames',true)
+Dx = poemAnalysis_classify_v3(T);
 
