@@ -23,8 +23,8 @@ dataDir = '/Users/carlynpattersongentile/Documents/data/poem/';
 analysisDir = '/Users/carlynpattersongentile/Documents/analysis/poem/';
 
 % Set the output filenames
-outputResultExcelName = fullfile(dataDir, 'POEM_v3.0_January 8, 2024_17.32.csv');
-rawDataSheets = {'POEM_v3.0_January 8, 2024_17.32.csv'};
+outputResultExcelName = fullfile(dataDir, 'POEM_v3.1_March 3, 2024_20.08.csv');
+rawDataSheets = {'POEM_v3.1_March 3, 2024_20.08.csv'};
 
 % get the full path to thisDataSheet
 thisDataSheetFileName = fullfile(dataDir, rawDataSheets{1});
@@ -36,4 +36,47 @@ thisDataSheetFileName = fullfile(dataDir, rawDataSheets{1});
 
 %% classify headache based upon table T
 Dx = poemAnalysis_classify_v3(T);
+T.Dx = Dx.Dx;
+T.DxSimple = mergecats(Dx.Dx2,{'non-migraine headache','no headache'},'not migraine');
+T.DxSimple = reordercats(T.DxSimple,{'not migraine','migraine'});
 
+%% run polychoric analysis on light metrics
+
+MSCORES = [T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety... 
+    T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight... 
+    T.lightScreen T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
+    T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor];
+[PA,EIGENS,MCORR] = polychoric_CPGadapted(MSCORES,999,1000,1,1);
+
+light_vbls={'headache','dizzy','eye strain','blurry','intolerant','anxiety',...
+    'fluorescent','flicker','glare','trees','sunlight','headlight','screen',...
+    'sunglasses indoors','seek darkness','limit TV',...
+    'limit devices','limit shops','limit driving','limit work','limit outdoors'};
+
+% calculate coefficients
+light_coef = zeros(height(T),PA);
+for x = 1:size(MSCORES,1)
+    for y = 1:size(MSCORES,2)
+        temp1 = MSCORES(x,:);
+        temp2 = MCORR(:,y);
+        r = temp1*temp2;
+        light_coef(x,y) = r;
+    end
+end
+
+figure(110)
+biplot(MCORR(:,1:2),'Scores',light_coef(:,1:2),'VarLabels',light_vbls)
+ax=gca; ax.TickDir='out'; ax.Box='off';
+
+%% CAMS analysis
+
+var_pres = char('photophobia','phonophobia','osmophobia','nausea and/or vomiting','lightheaded','blurry vision','difficulty thinking',...
+    'neck pain','balance problems','spinning','ringing','double vision');
+var_abs = char('no photophobia','no phonophobia','no osmophobia','no nausea and/or vomiting','no lightheaded','no blurry vision','no difficulty thinking',...
+    'no neck pain','no balance problems','no spinning','no ringing','no double vision');
+
+
+[cams] = runCAMS(T(:,184:195),var_pres,var_abs,'Sn',[-1 1 1]);
+T.cams1 = cams.MCA_score(:,1);
+T.cams2 = cams.MCA_score(:,2);
+T.cams3 = cams.MCA_score(:,3);
