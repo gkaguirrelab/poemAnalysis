@@ -18,6 +18,9 @@
 clear variables
 close all
 
+% indicates whether to run polychoric light analysis (1) or not (0)
+polyChorLight = 1;
+
 %% Set paths to data and output
 dataDir = '/Users/carlynpattersongentile/Documents/data/poem/';
 analysisDir = '/Users/carlynpattersongentile/Documents/analysis/poem/';
@@ -40,33 +43,11 @@ T.Dx = Dx.Dx;
 T.DxSimple = mergecats(Dx.Dx2,{'non-migraine headache','no headache'},'not migraine');
 T.DxSimple = reordercats(T.DxSimple,{'not migraine','migraine'});
 
-%% run polychoric analysis on light metrics
-
 MSCORES = [T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety... 
     T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight... 
     T.lightScreen T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
     T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor];
-[PA,EIGENS,MCORR] = polychoric_CPGadapted(MSCORES,999,1000,1,1);
 
-light_vbls={'headache','dizzy','eye strain','blurry','intolerant','anxiety',...
-    'fluorescent','flicker','glare','trees','sunlight','headlight','screen',...
-    'sunglasses indoors','seek darkness','limit TV',...
-    'limit devices','limit shops','limit driving','limit work','limit outdoors'};
-
-% calculate coefficients
-light_coef = zeros(height(T),PA);
-for x = 1:size(MSCORES,1)
-    for y = 1:size(MSCORES,2)
-        temp1 = MSCORES(x,:);
-        temp2 = MCORR(:,y);
-        r = temp1*temp2;
-        light_coef(x,y) = r;
-    end
-end
-
-figure(110)
-biplot(MCORR(:,1:2),'Scores',light_coef(:,1:2),'VarLabels',light_vbls)
-ax=gca; ax.TickDir='out'; ax.Box='off';
 
 %% CAMS analysis
 
@@ -76,7 +57,54 @@ var_abs = char('no photophobia','no phonophobia','no osmophobia','no nausea and/
     'no neck pain','no balance problems','no spinning','no ringing','no double vision');
 
 
-[cams] = runCAMS(T(:,184:195),var_pres,var_abs,'Sn',[-1 1 1]);
-T.cams1 = cams.MCA_score(:,1);
-T.cams2 = cams.MCA_score(:,2);
-T.cams3 = cams.MCA_score(:,3);
+[cams] = runCAMS(T(:,185:196),var_pres,var_abs,'Sn',[-1 1 1]); % enter the number 4 when prompted
+
+%% Polychoric light analysis
+
+if polyChorLight==1
+    MSCORES = [T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety...
+    T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight...
+    T.lightScreen T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
+    T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor];
+
+    light_vbls = {'headache','dizzy','eye strain','blurry','intolerant','anxiety',...
+    'fluorescent','flicker','glare','trees','sunlight','headlight','screen',...
+    'sunglasses indoors','seek darkness','limit TV',...
+    'limit devices','limit shops','limit driving','limit work','limit outdoors'};
+
+    Light_polychor = runPolychor(MSCORES,light_vbls);
+
+end
+
+%% compile results
+
+% Demographics
+Results = table(categorical(T.ResponseID));
+Results.Age = T.Age;
+Results.RaceEthnicity = T.RaceEth;
+Results.GenderID = T.GenderID;
+Results.SAAB = T.SAAB;
+Results.SO = T.SO;
+Results.HAageOnset = categorical(T.HAageOnset);
+Results.MigraineFamHx = categorical(T.MigFamHx);
+
+% Headache diagnosis
+Results.DxFull = T.Dx;
+Results.DxSimple = T.DxSimple; % separates migraine from not migraine
+
+% Headache burden
+Results.MIDAS = T.MIDAS_score;
+Results.MigraineFrequency = T.MigraineFrequency; % 1 = 0-4 days/month, 2 = 5-9 d/m, 3 = 10-15 d/m, 4 = 16-20 d/m, 5 = >20 d/m
+Results.HAseverity = T.SeverityHA;
+Results.ContinuousHA = T.ContinuousHA;
+
+% light, allodynia, and CAMS
+Results.LightSensScore = sum([T.lightSx_score T.lightBother_score T.lightAvoidance_score],2) - T.lightGlassesSun;
+Results.AllodyniaScore = T.allodynia_score;
+Results.interAllodynia = categorical(T.AllodyniaNoHA);
+Results.PhoticSneeze = categorical(T.LightSneeze);
+Results.PhoticSneeze = renamecats(Results.PhoticSneeze,cell(unique(T.LightSneeze)),{'No','Yes'});
+Results.MotionSick = categorical(T.MotionSick);
+Results.cams1 = cams.MCA_score(:,1);
+Results.cams2 = cams.MCA_score(:,2);
+Results.cams3 = cams.MCA_score(:,3);
