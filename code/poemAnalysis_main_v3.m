@@ -19,19 +19,17 @@ clear variables
 close all
 
 % indicates whether to run polychoric light analysis (1) or not (0)
-polyChorLight = 1;
+runPolyChorLight = false;
+runCAMS = false;
 
 %% Set paths to data and output
-dataDir = '/Users/carlynpattersongentile/Documents/data/poem/';
-analysisDir = '/Users/carlynpattersongentile/Documents/analysis/poem/';
-
-% Set the output filenames
-outputResultExcelName = fullfile(dataDir, 'POEM_v3.1_March 3, 2024_20.08.csv');
-rawDataSheets = {'POEM_v3.1_March 3, 2024_20.08.csv'};
+projectPath = tbLocateProjectSilent('poemAnalysis');
+dataDir = fullfile(projectPath,'data','POEMv3.1');
+rawDataSheets = dir(fullfile(dataDir,'*.csv'));
+rawDataSheets = {rawDataSheets.name};
 
 % get the full path to thisDataSheet
 thisDataSheetFileName = fullfile(dataDir, rawDataSheets{1});
-
 
 %% load and pre-process thisDataSheet, returning table "T"
 [T, notesText] = poemAnalysis_preProcess_v3(thisDataSheetFileName);
@@ -43,40 +41,12 @@ T.Dx = Dx.Dx;
 T.DxSimple = mergecats(Dx.Dx2,{'non-migraine headache','no headache'},'not migraine');
 T.DxSimple = reordercats(T.DxSimple,{'not migraine','migraine'});
 
-MSCORES = [T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety... 
-    T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight... 
-    T.lightScreen T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
-    T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor];
-
-
-%% CAMS analysis
-
-var_pres = char('photophobia','phonophobia','osmophobia','nausea and/or vomiting','lightheaded','blurry vision','difficulty thinking',...
-    'neck pain','balance problems','spinning','ringing','double vision');
-var_abs = char('no photophobia','no phonophobia','no osmophobia','no nausea and/or vomiting','no lightheaded','no blurry vision','no difficulty thinking',...
-    'no neck pain','no balance problems','no spinning','no ringing','no double vision');
-
-
-[cams] = runCAMS(T(:,185:196),var_pres,var_abs,'Sn',[-1 1 1]); % enter the number 4 when prompted
-
-%% Polychoric light analysis
-
-if polyChorLight==1
-    MSCORES = [T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety...
+MSCORES = [T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety...
     T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight...
     T.lightScreen T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
     T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor];
 
-    light_vbls = {'headache','dizzy','eye strain','blurry','intolerant','anxiety',...
-    'fluorescent','flicker','glare','trees','sunlight','headlight','screen',...
-    'sunglasses indoors','seek darkness','limit TV',...
-    'limit devices','limit shops','limit driving','limit work','limit outdoors'};
-
-    Light_polychor = runPolychor(MSCORES,light_vbls);
-
-end
-
-%% compile results
+%% Compile basic results
 
 % Demographics
 Results = table(categorical(T.ResponseID));
@@ -105,6 +75,36 @@ Results.interAllodynia = categorical(T.AllodyniaNoHA);
 Results.PhoticSneeze = categorical(T.LightSneeze);
 Results.PhoticSneeze = renamecats(Results.PhoticSneeze,cell(unique(T.LightSneeze)),{'No','Yes'});
 Results.MotionSick = categorical(T.MotionSick);
-Results.cams1 = cams.MCA_score(:,1);
-Results.cams2 = cams.MCA_score(:,2);
-Results.cams3 = cams.MCA_score(:,3);
+
+
+
+
+%% CAMS analysis
+if runCAMS
+    var_pres = char('photophobia','phonophobia','osmophobia','nausea and/or vomiting','lightheaded','blurry vision','difficulty thinking',...
+        'neck pain','balance problems','spinning','ringing','double vision');
+    var_abs = char('no photophobia','no phonophobia','no osmophobia','no nausea and/or vomiting','no lightheaded','no blurry vision','no difficulty thinking',...
+        'no neck pain','no balance problems','no spinning','no ringing','no double vision');
+    [cams] = runCAMS(T(:,185:196),var_pres,var_abs,'Sn',[-1 1 1]); % enter the number 4 when prompted
+    Results.cams1 = cams.MCA_score(:,1);
+    Results.cams2 = cams.MCA_score(:,2);
+    Results.cams3 = cams.MCA_score(:,3);
+end
+
+%% Polychoric light analysis
+
+if runPolyChorLight
+    MSCORES = [T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety...
+        T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight...
+        T.lightScreen T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
+        T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor];
+
+    light_vbls = {'headache','dizzy','eye strain','blurry','intolerant','anxiety',...
+        'fluorescent','flicker','glare','trees','sunlight','headlight','screen',...
+        'sunglasses indoors','seek darkness','limit TV',...
+        'limit devices','limit shops','limit driving','limit work','limit outdoors'};
+
+    Light_polychor = runPolychor(MSCORES,light_vbls);
+
+end
+
