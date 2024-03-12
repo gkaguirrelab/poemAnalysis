@@ -33,7 +33,7 @@ plotFileName = fullfile(figSaveDir,'POEM_v3.1_MapMigraineRespondents.pdf');
 saveas(figHandle,plotFileName);
 
 
-%% Conditional symptom scores
+%% Conditional symptom scores, version 1
 varsToPlot = {'MIDAS','AllodyniaScore','LightSensScore'};
 scoreLabel = {'MIDAS','allodynia','light sensitivity'};
 ylimMax = [0.75,0.75,0.75,];
@@ -129,4 +129,19 @@ end
 
 plotFileName = fullfile(figSaveDir,'POEM_v3.1_ConditionSymptomHistograms.pdf');
 saveas(figHandle,plotFileName);
+
+
+%% Contingent symptom count
+fprintf('Condition counts:\n');
+for ii = 1:2
+    for jj = 1:2
+       idx = and(...
+           strcmp(conditionPairs{1}{ii},cellstr(Results.(conditionOn{1}))),...
+           strcmp(conditionPairs{2}{jj},cellstr(Results.(conditionOn{2})))...
+           );
+       idx = and(migraineIdx,idx);
+       fprintf([conditionOn{1} ' - ' conditionPairs{1}{ii} '; ' conditionOn{2} ' - ' conditionPairs{2}{jj} ': n = %d\n' ],sum(idx));
+    end
+end
+
 
