@@ -76,7 +76,12 @@ for vv = 1:length(varsToPlot)
         lineHandles = [];
         for pp = 1:length(thisPair)
 
+            % Get the indices for this conditional
             idx = and(migraineIdx,strcmp(thisPair{pp},cellstr(Results.(thisCondition))));
+
+            % Store the vals for a subsequent KS test
+            veridicalVals{pp} = vals(idx);
+
             nSubs(pp) = sum(idx);
             Yboot = [];
             for bb = 1:nBoots
@@ -90,6 +95,9 @@ for vv = 1:length(varsToPlot)
             hold on
             lineHandles(pp) = plot(X,Y,'.-','Color',plotLineColors{cc}{pp},'MarkerSize',10,'LineWidth',1.5);
         end
+
+        % Perform a two-tailed KS test of the distributions
+        [~,p,ks2stat] = kstest2(veridicalVals{1},veridicalVals{2});
 
         % Clean up
         a = gca();
@@ -122,6 +130,9 @@ for vv = 1:length(varsToPlot)
             a.XAxis.Visible = 'off';
         end
 
+        kstext = sprintf('KS = %2.2f, p = %0.2e',ks2stat,p);
+        text(xlimMax(vv)*0.05,0.6,kstext,'HorizontalAlignment','left');
+
 
     end
 
@@ -135,12 +146,12 @@ saveas(figHandle,plotFileName);
 fprintf('Condition counts:\n');
 for ii = 1:2
     for jj = 1:2
-       idx = and(...
-           strcmp(conditionPairs{1}{ii},cellstr(Results.(conditionOn{1}))),...
-           strcmp(conditionPairs{2}{jj},cellstr(Results.(conditionOn{2})))...
-           );
-       idx = and(migraineIdx,idx);
-       fprintf([conditionOn{1} ' - ' conditionPairs{1}{ii} '; ' conditionOn{2} ' - ' conditionPairs{2}{jj} ': n = %d\n' ],sum(idx));
+        idx = and(...
+            strcmp(conditionPairs{1}{ii},cellstr(Results.(conditionOn{1}))),...
+            strcmp(conditionPairs{2}{jj},cellstr(Results.(conditionOn{2})))...
+            );
+        idx = and(migraineIdx,idx);
+        fprintf([conditionOn{1} ' - ' conditionPairs{1}{ii} '; ' conditionOn{2} ' - ' conditionPairs{2}{jj} ': n = %d\n' ],sum(idx));
     end
 end
 
