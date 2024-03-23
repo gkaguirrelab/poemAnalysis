@@ -130,9 +130,8 @@ for vv = 1:length(varsToPlot)
             a.XAxis.Visible = 'off';
         end
 
-        kstext = sprintf('KS = %2.2f, p = %0.2e',ks2stat,p);
+        kstext = sprintf('KS = %2.2f, p = %0.1e',ks2stat,p);
         text(xlimMax(vv)*0.05,0.6,kstext,'HorizontalAlignment','left');
-
 
     end
 
@@ -155,4 +154,12 @@ for ii = 1:2
     end
 end
 
+%% Correlation of measures
+[rho,pval]=corr(Results.MIDAS(migraineIdx),Results.AllodyniaScore(migraineIdx),'Type','Spearman');
+fprintf('Correlation of MIDAS with ASC-12 in migraine: Spearman rho = %2.2f, p = %0.1e\n',rho,pval);
 
+[rho,pval]=corr(Results.MIDAS(migraineIdx),Results.LightSensScore(migraineIdx),'Type','Spearman');
+fprintf('Correlation of MIDAS with Light Sensitivity in migraine: Spearman rho = %2.2f, p = %0.1e\n',rho,pval);
+
+[rho,pval]=corr(Results.AllodyniaScore(migraineIdx),Results.LightSensScore(migraineIdx),'Type','Spearman');
+fprintf('Correlation of ASC-12 with Light Sensitivity in migraine: Spearman rho = %2.2f, p = %0.1e\n',rho,pval);
