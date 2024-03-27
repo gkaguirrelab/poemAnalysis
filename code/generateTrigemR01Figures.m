@@ -39,26 +39,30 @@ scoreLabel = {'MIDAS','allodynia','light sensitivity'};
 ylimMax = [0.75,0.75,0.75,];
 xlimMax = [400,25,75];
 xtickSpacing = [100 5 25];
-conditionOn = {'PhoticSneeze','interAllodynia','MotionSick'};
+conditionOn = {'PhoticSneeze','interAllodynia','MotionSick','DxFull'};
 conditionPairs = {...
     {'No','Yes'},...
     {'No','Yes'},...
     {'No','Yes'},...
+    {'w/out','w/aura'},...
     };
 plotPatchColors = {...
     {'k','b'},...
     {'k','m'},...
-    {'k','g'}};
+    {'k','g'},...
+    {'k','r'},...
+    };
 plotLineColors = {...
     {[0.5 0.5 0.5],[0.5 0.5 0.75]},...
     {[0.5 0.5 0.5],[0.75 0.5 0.75]},...
     {[0.5 0.5 0.5],[0.5 0.55 0.5]},...
+    {[0.5 0.5 0.5],[0.75 0.5 0.5]},...
     };
 
 figHandle = figure();
 set(gcf, 'color', 'none');
-figuresize(6,6,'inches');
-tiledlayout(3,3,'TileSpacing','tight','Padding','tight');
+figuresize(length(varsToPlot)*2,length(conditionOn)*2,'inches');
+tiledlayout(length(conditionOn),length(varsToPlot),'TileSpacing','tight','Padding','tight');
 
 for vv = 1:length(varsToPlot)
 
@@ -77,7 +81,7 @@ for vv = 1:length(varsToPlot)
         for pp = 1:length(thisPair)
 
             % Get the indices for this conditional
-            idx = and(migraineIdx,strcmp(thisPair{pp},cellstr(Results.(thisCondition))));
+            idx = and(migraineIdx,contains(cellstr(Results.(thisCondition)),thisPair{pp}));
 
             % Store the vals for a subsequent KS test
             veridicalVals{pp} = vals(idx);
@@ -121,7 +125,7 @@ for vv = 1:length(varsToPlot)
         if cc == 1
             title(varsToPlot{vv});
         end
-        if cc == 3
+        if cc == length(conditionOn)
             xlabel(scoreLabel{vv});
             a.XTick = 0:xtickSpacing(vv):xlimMax(vv);
             a.XTickLabelRotation = 45;
@@ -131,7 +135,7 @@ for vv = 1:length(varsToPlot)
         end
 
         kstext = sprintf('KS = %2.2f, p = %0.1e',ks2stat,p);
-        text(xlimMax(vv)*0.05,0.6,kstext,'HorizontalAlignment','left');
+        text(xlimMax(vv)*0.05,0.7,kstext,'HorizontalAlignment','left');
 
     end
 
@@ -143,15 +147,17 @@ saveas(figHandle,plotFileName);
 
 %% Contingent symptom count
 fprintf('Condition counts:\n');
-for ii = 1:2
-    for jj = 1:2
+for ii = 1:length(conditionOn)
+    lineOut = [conditionOn{ii} ' -- '];
+    for jj = 1:ii-1
         idx = and(...
-            strcmp(conditionPairs{1}{ii},cellstr(Results.(conditionOn{1}))),...
-            strcmp(conditionPairs{2}{jj},cellstr(Results.(conditionOn{2})))...
+            contains(cellstr(Results.(conditionOn{ii})),conditionPairs{ii}{2}),...
+            contains(cellstr(Results.(conditionOn{jj})),conditionPairs{jj}{2})...
             );
         idx = and(migraineIdx,idx);
-        fprintf([conditionOn{1} ' - ' conditionPairs{1}{ii} '; ' conditionOn{2} ' - ' conditionPairs{2}{jj} ': n = %d\n' ],sum(idx));
+        lineOut = sprintf([lineOut '%d  '],sum(idx));
     end
+    fprintf([lineOut '\n']);
 end
 
 %% Correlation of measures
