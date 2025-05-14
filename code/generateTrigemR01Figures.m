@@ -117,7 +117,7 @@ saveas(figHandle,plotFileName);
 
 
 
-%% Conditional symptom scores\
+%% Conditional symptom scores
 varsToPlot = {'MIDAS','AllodyniaScore','LightSensScore'};
 scoreLabel = {'MIDAS','allodynia','light sensitivity'};
 ylimMax = [0.75,0.75,0.75,];
@@ -249,4 +249,48 @@ fprintf('Correlation of MIDAS with Light Sensitivity in migraine: Spearman rho =
 [rho,pval]=corr(Results.AllodyniaScore(migraineIdx),Results.LightSensScore(migraineIdx),'Type','Spearman');
 fprintf('Correlation of ASC-12 with Light Sensitivity in migraine: Spearman rho = %2.2f, p = %0.1e\n',rho,pval);
 
-% Tests for ratio differences between headache free and migraine
+% Plot the light / touch sensitivity scatter for migraine with and without
+% aura
+wIdx = and(migraineIdx,contains(cellstr(Results.DxFull),'w/aura'));
+woIdx = and(migraineIdx,contains(cellstr(Results.DxFull),'w/out'));
+
+corr(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx))
+corr(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx))
+
+subplot(1,2,2)
+scatter(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx),50,...
+    'MarkerFaceColor','b','MarkerEdgeColor','none',...
+    'MarkerFaceAlpha',.25);
+refline
+refline
+axis square
+box off
+xlabel('Light sensitivity score');
+ylabel('Allodynia score');
+a = gca();
+a.TickDir = 'out';
+a.XTick = 0:20:80;
+xlim([0 80])
+ylim([0 25])
+a.FontSize = 14;
+title('M w/Aura')
+
+
+subplot(1,2,1)
+scatter(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx),50,...
+    'MarkerFaceColor','r','MarkerEdgeColor','none',...
+    'MarkerFaceAlpha',.25);
+refline
+axis square
+box off
+xlabel('Light sensitivity score');
+ylabel('Allodynia score');
+a = gca();
+a.TickDir = 'out';
+a.XTick = 0:20:80;
+xlim([0 80])
+ylim([0 25])
+a.FontSize = 14;
+title('M wo/Aura')
+
+
