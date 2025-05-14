@@ -10,15 +10,14 @@ nBoots = 100;
 nBins = 7;
 
 migraineDx = {'migraine w/out aura','migraine w/aura'};
-probMigraine = {'probable migraine w/out aura','probable migraine w/aura'};
+probMigraineDx = {'probable migraine w/out aura','probable migraine w/aura'};
 haFDx = {'no headache'};
 nonMigHaDx = {'non-migraine headache'};
 migraineIdx = or(strcmp(migraineDx{1},cellstr(Results.DxFull)),...
     strcmp(migraineDx{2},cellstr(Results.DxFull)));
-otherHaIdx = or(...
-    or(strcmp(probMigraine{1},cellstr(Results.DxFull)),...
-    strcmp(probMigraine{2},cellstr(Results.DxFull))),...
-    strcmp(nonMigHaDx,cellstr(Results.DxFull)) );
+probMigIdx = or(strcmp(probMigraineDx{1},cellstr(Results.DxFull)),...
+    strcmp(probMigraineDx{2},cellstr(Results.DxFull)));
+otherHaIdx = strcmp(nonMigHaDx,cellstr(Results.DxFull));
 haFIdx = strcmp(haFDx,cellstr(Results.DxFull));
 allIdx = 1:size(Results,1);
 
@@ -44,13 +43,13 @@ saveas(figHandle,plotFileName);
 %% Create symptom score plots for each group
 varsToPlot = {'MIDAS','AllodyniaScore','LightSensScore'};
 scoreLabel = {'MIDAS','allodynia','light sensitivity'};
-groups = {'haFIdx','otherHaIdx','migraineIdx'};
-groupLabels = {'HAF','otherHA','migr'};
+groups = {'haFIdx','otherHaIdx','migraineIdx','probMigIdx'};
+groupLabels = {'HAF','otherHA','migr','probMig'};
 ylimMax = [0.75 0.75 0.75];
 xlimMax = [400,25,75];
 xtickSpacing = [100 5 25];
-plotPatchColors = {'k','y','r'};
-plotLineColors = {[0.5 0.5 0.5],[0.75 0.75 0.5],[0.75 0.5 0.5]};
+plotPatchColors = {'k','y','r','b'};
+plotLineColors = {[0.5 0.5 0.5],[0.75 0.75 0.5],[0.75 0.5 0.5],[0.5 0.5 0.75]};
 figHandle = figure();
 set(gcf, 'color', 'none');
 figuresize(length(varsToPlot)*2,2,'inches');
@@ -249,3 +248,5 @@ fprintf('Correlation of MIDAS with Light Sensitivity in migraine: Spearman rho =
 
 [rho,pval]=corr(Results.AllodyniaScore(migraineIdx),Results.LightSensScore(migraineIdx),'Type','Spearman');
 fprintf('Correlation of ASC-12 with Light Sensitivity in migraine: Spearman rho = %2.2f, p = %0.1e\n',rho,pval);
+
+% Tests for ratio differences between headache free and migraine
