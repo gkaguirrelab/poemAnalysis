@@ -41,20 +41,20 @@ saveas(figHandle,plotFileName);
 
 
 %% Create symptom score plots for each group
-varsToPlot = {'MIDAS','AllodyniaScore','LightSensScore'};
-scoreLabel = {'MIDAS','allodynia','light sensitivity'};
+varsToPlot = {'MIDAS','LightSensScore','AllodyniaScore',};
+scoreLabel = {'MIDAS','light sensitivity','allodynia'};
 groups = {'haFIdx','otherHaIdx','migraineIdx','probMigIdx'};
 groupLabels = {'HAF','otherHA','migr','probMig'};
 ylimMax = [0.75 0.75 0.75];
-xlimMax = [400,25,75];
-xtickSpacing = [100 5 25];
+xlimMax = [400,75,25];
+xtickSpacing = [100 25 5];
 plotPatchColors = {'k','y','r','b'};
-plotLineColors = {[0.5 0.5 0.5],[0.75 0.75 0.5],[0.75 0.5 0.5],[0.5 0.5 0.75]};
+plotLineColors = {[0.5 0.5 0.5],[0.75 0.75 0.5],[0.75 0.5 0.75],[0.5 0.5 0.75]};
 figHandle = figure();
 set(gcf, 'color', 'none');
 figuresize(length(varsToPlot)*2,2,'inches');
 tiledlayout(1,length(varsToPlot),'TileSpacing','tight','Padding','tight');
-for vv = 1:length(varsToPlot)
+for vv = 1:3
 
     vals = double(Results.(varsToPlot{vv}));
     [~,edges] = discretize(vals(allIdx),nBins);
@@ -63,7 +63,7 @@ for vv = 1:length(varsToPlot)
     plot([0 xlimMax(vv)],[0 0],':k');
 
     veridicalVals = [];
-    for gg = 1:length(groups)
+    for gg = [1 3]
 
         idx = eval(groups{gg});
         veridicalVals{gg} = vals(idx);
@@ -98,19 +98,20 @@ for vv = 1:length(varsToPlot)
             a.YTick = [];
         case 3
             a.YTick = [];
-            for gg = 1:length(groups)
+            for gg = [1 3]
                 lgndText{gg} = sprintf([groupLabels{gg} ', n=%d'],nSubs(gg));
             end
-            lh = legend(lineHandles,lgndText,'Location','northeast');
-            lh.Box = 'off';
+%            lh = legend(lineHandles,lgndText,'Location','northeast');
+%            lh.Box = 'off';
     end
     ylim([-0.05,ylimMax(vv)]);
     xlim([0,xlimMax(vv)]);
     a.TickDir = 'out';
-    title(varsToPlot{vv});
+%    title(varsToPlot{vv});
     xlabel(scoreLabel{vv});
     a.XTick = 0:xtickSpacing(vv):xlimMax(vv);
     a.XTickLabelRotation = 45;
+    axis square
 end
 plotFileName = fullfile(figSaveDir,'POEM_v3.1_GroupSymptomHistograms.pdf');
 saveas(figHandle,plotFileName);
@@ -118,11 +119,11 @@ saveas(figHandle,plotFileName);
 
 
 %% Conditional symptom scores
-varsToPlot = {'MIDAS','AllodyniaScore','LightSensScore'};
-scoreLabel = {'MIDAS','allodynia','light sensitivity'};
+varsToPlot = {'MIDAS','LightSensScore','AllodyniaScore'};
+scoreLabel = {'MIDAS','light sensitivity','allodynia'};
 ylimMax = [0.75,0.75,0.75,];
-xlimMax = [400,25,75];
-xtickSpacing = [100 5 25];
+xlimMax = [400,75,25];
+xtickSpacing = [100 25 5];
 conditionOn = {'PhoticSneeze','interAllodynia','MotionSick','DxFull'};
 conditionPairs = {...
     {'No','Yes'},...
@@ -134,19 +135,19 @@ plotPatchColors = {...
     {'k','b'},...
     {'k','m'},...
     {'k','g'},...
-    {'k','r'},...
+    {'r','b'},...
     };
 plotLineColors = {...
     {[0.5 0.5 0.5],[0.5 0.5 0.75]},...
     {[0.5 0.5 0.5],[0.75 0.5 0.75]},...
     {[0.5 0.5 0.5],[0.5 0.55 0.5]},...
-    {[0.5 0.5 0.5],[0.75 0.5 0.5]},...
+    {[0.75 0.5 0.5],[0.5 0.5 0.75]},...
     };
 
 figHandle = figure();
 set(gcf, 'color', 'none');
-figuresize(length(varsToPlot)*2,length(conditionOn)*2,'inches');
-tiledlayout(length(conditionOn),length(varsToPlot),'TileSpacing','tight','Padding','tight');
+figuresize(length(varsToPlot)*2,2,'inches');
+tiledlayout(1,3,'TileSpacing','tight','Padding','tight');
 
 for vv = 1:length(varsToPlot)
 
@@ -154,9 +155,9 @@ for vv = 1:length(varsToPlot)
     [~,edges] = discretize(vals(migraineIdx),nBins);
     X = edges(1:end-1) + diff(edges)/2;
 
-    for cc = 1:length(conditionOn)
+    for cc = 4
 
-        nexttile((cc-1)*3+vv)
+        nexttile()
         plot([0 xlimMax(vv)],[0 0],':k');
 
         thisCondition = conditionOn{cc};
@@ -208,9 +209,9 @@ for vv = 1:length(varsToPlot)
             for pp = 1:2
                 lgndText{pp} = sprintf([thisPair{pp} ', n=%d'],nSubs(pp));
             end
-            lh = legend(lineHandles,lgndText,'Location','east');
-            lh.Box = 'off';
-            text(xlimMax(vv)*0.75,0.5,thisCondition,'HorizontalAlignment','right');
+%            lh = legend(lineHandles,lgndText,'Location','east');
+%            lh.Box = 'off';
+%            text(xlimMax(vv)*0.75,0.5,thisCondition,'HorizontalAlignment','right');
         else
             a.YTick = [];
         end
@@ -218,7 +219,7 @@ for vv = 1:length(varsToPlot)
         xlim([0,xlimMax(vv)]);
         a.TickDir = 'out';
         if cc == 1
-            title(varsToPlot{vv});
+%            title(varsToPlot{vv});
         end
         if cc == length(conditionOn)
             xlabel(scoreLabel{vv});
@@ -229,9 +230,9 @@ for vv = 1:length(varsToPlot)
             a.XAxis.Visible = 'off';
         end
 
-        kstext = sprintf('KS = %2.2f, p = %0.1e',ks2stat,p);
-        text(xlimMax(vv)*0.05,0.7,kstext,'HorizontalAlignment','left');
-
+%        kstext = sprintf('KS = %2.2f, p = %0.1e',ks2stat,p);
+%        text(xlimMax(vv)*0.05,0.7,kstext,'HorizontalAlignment','left');
+axis square
     end
 
 end
@@ -251,6 +252,11 @@ fprintf('Correlation of ASC-12 with Light Sensitivity in migraine: Spearman rho 
 
 % Plot the light / touch sensitivity scatter for migraine with and without
 % aura
+figHandle = figure();
+set(gcf, 'color', 'none');
+figuresize(6,3,'inches');
+
+
 wIdx = and(migraineIdx,contains(cellstr(Results.DxFull),'w/aura'));
 woIdx = and(migraineIdx,contains(cellstr(Results.DxFull),'w/out'));
 
@@ -258,11 +264,16 @@ corr(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx))
 corr(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx))
 
 subplot(1,2,2)
-scatter(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx),50,...
+scatter(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx),25,...
     'MarkerFaceColor','b','MarkerEdgeColor','none',...
     'MarkerFaceAlpha',.25);
-refline
-refline
+hold on
+mdl = fitlm(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx),...
+    'RobustOpts','on');
+xfit = [10:1:75]';
+[ypred,yci]=predict(mdl,xfit);
+plot(xfit,ypred,'-b','LineWidth',2)
+plot(xfit,yci,'-b')
 axis square
 box off
 xlabel('Light sensitivity score');
@@ -270,17 +281,23 @@ ylabel('Allodynia score');
 a = gca();
 a.TickDir = 'out';
 a.XTick = 0:20:80;
-xlim([0 80])
-ylim([0 25])
-a.FontSize = 14;
+xlim([-8 80])
+ylim([-2.5 25])
+a.FontSize = 10;
 title('M w/Aura')
 
 
 subplot(1,2,1)
-scatter(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx),50,...
+scatter(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx),25,...
     'MarkerFaceColor','r','MarkerEdgeColor','none',...
     'MarkerFaceAlpha',.25);
-refline
+hold on
+mdl = fitlm(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx),...
+    'RobustOpts','on');
+xfit = [0:1:75]';
+[ypred,yci]=predict(mdl,xfit);
+plot(xfit,ypred,'-r','LineWidth',2)
+plot(xfit,yci,'-r')
 axis square
 box off
 xlabel('Light sensitivity score');
@@ -288,9 +305,56 @@ ylabel('Allodynia score');
 a = gca();
 a.TickDir = 'out';
 a.XTick = 0:20:80;
-xlim([0 80])
-ylim([0 25])
-a.FontSize = 14;
+xlim([-8 80])
+ylim([-2.5 25])
+a.FontSize = 10;
 title('M wo/Aura')
+
+plotFileName = fullfile(figSaveDir,'POEM_v3.1_touchLightSensCorrelation.pdf');
+saveas(figHandle,plotFileName);
+
+
+% Report some headache burden measures between with and without aura
+figHandle = figure();
+set(gcf, 'color', 'none');
+figuresize(6,3,'inches');
+
+markerSize = 5;
+markerAlpha = 1;
+swarmWidth = 0.75;
+
+subplot(1,2,1)
+hold on
+y = Results.HAseverity(woIdx); x = 1;
+geoffSwarm(x,y,swarmWidth,'r',markerSize,markerAlpha);
+plot(mean(x),mean(y),'xk');
+y = Results.HAseverity(wIdx); x = 2;
+geoffSwarm(x,y,swarmWidth,'b',markerSize,markerAlpha);
+plot(mean(x),mean(y),'xk');
+title('Headache severity')
+ylim([0 12]);
+a=gca();
+a.XTick = [1 2];
+a.XTickLabel = {'without','with'};
+
+subplot(1,2,2)
+hold on
+y = Results.MigraineFrequency(woIdx); x = 1;
+geoffSwarm(x,y,swarmWidth,'r',markerSize,markerAlpha);
+plot(mean(x),mean(y),'xk');
+y = Results.MigraineFrequency(wIdx); x = 2;
+geoffSwarm(x,y,swarmWidth,'b',markerSize,markerAlpha);
+plot(mean(x),mean(y),'xk');
+title('Headache frequency')
+ylim([0 6]);
+a=gca();
+a.XTick = [1 2];
+a.XTickLabel = {'without','with'};
+
+plotFileName = fullfile(figSaveDir,'POEM_v3.1_freqSeveritySwarm.pdf');
+saveas(figHandle,plotFileName);
+
+
+
 
 
