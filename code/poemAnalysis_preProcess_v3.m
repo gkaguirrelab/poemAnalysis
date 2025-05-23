@@ -41,12 +41,12 @@ notesText=cellstr(spreadSheetName);
 %% Read in the table. Suppress some routine warnings.
 warning('off','MATLAB:table:ModifiedAndSavedVarnames');
 warning('off','MATLAB:table:ModifiedVarnames');
-T=readtable(spreadSheetName);
+T = readtable(spreadSheetName, 'ReadVariableNames', true);
 
 %% Organize the table
 % replace variable names, and switch data to categorical
 
-if width(T)==144
+if width(T)==144   
     T.Properties.VariableNames = {'StartDate','EndDate','Status','IPAddress','Progress','DurationToCompleteSec',...
         'Finished','RecordedDate','ResponseID','LastName','FirstName','Email','ExternalReference','LocationLatitude',...
         'LocationLongitude','DistributionChannel','UserLanguage','Q_RecaptchaScore','Age','Zip','RaceEth','AIAN','AIANtxt',...
@@ -65,7 +65,27 @@ if width(T)==144
         'AllodyniaPillow','AllodyniaHeat','AllodyniaCold','AllodyniaNoHA','AnsCorrect','Research','AllodyniaComb_noHA','AllodyniaPonytail_noHA',...
         'AllodyniaShave_noHA','AllodyniaEyeGlasses_noHA','AllodyniaContacts_noHA','AllodyniaEarrings_noHA','AllodyniaNecklace_noHA','AllodyniaTightClothes_noHA',...
         'AllodyniaShower_noHA','AllodyniaPillow_noHA','AllodyniaHeat_noHA','AllodyniaCold_noHA','everHA','everDiscomfort'};
-else
+elseif width(T)==145   % POEM v3.3, with CHYPS (TheraSpecs questions have been removed)
+    T.Properties.VariableNames = {'StartDate','EndDate','Status','IPAddress','Progress','DurationToCompleteSec',...
+        'Finished','RecordedDate','ResponseID','LastName','FirstName','Email','ExternalReference','LocationLatitude',...
+        'LocationLongitude','DistributionChannel','UserLanguage','Q_RecaptchaScore','Age','Zip','RaceEth','AIAN','AIANtxt',...
+        'AIANtribe','AIANtribe_txt','Asian','Asian_txt','Black','Black_txt','Hispanic','Hispanic_txt','MENA','MENA_txt',...
+        'NHPI','NHPI_txt','White','White_txt','RaceEth_txt','GenderID','GenderID2','GenderID_txt','SAAB','SAAB_txt','SO',...
+        'SO2','SO_txt','HA_yn','unprovokedHA_yn','MigCritB','MigCritC','MigCritD','MigCritC2','MigCritD2','MigCritA',...
+        'MigFreq','MigRecent','VisAura','SensAura','SpeechAura','MultiSxAura_sametime','VisAura2orMore','VisAuraHArelation',...
+        'VisAuraRecent','VisAuraDur','VisAuraUni','VisAuraSpread','VisAuraDur_yn','SensAura2orMore','SensAuraHArelation',...
+        'SensAuraRecent','SensAuraDur','SensAuraUni','SensAuraSpread','SensAuraDur_yn','SpeechAura2orMore','SpeechAuraHArelation','SpeechAuraHArecent'...
+        'SpeechAuraDur','SpeechAuraDur_yn','menstrualMig','CAMS','contHA','contHAsomeBreaks','HAmissedWork3mo','HAimpactWork3mo','HAmissedHousework3mo',...
+        'HAimpactHousework3mo','HAmissedSocial3mo','HAdays3mo','SeverityHA','HAageOnset','MotionSick','MigFamHx','LightSneeze', ...
+        'Uncomfy_Def', 'Incorrect_Ans','Stripy_discomfort','TV_discomfort','Lights_discomfort', 'Sports_discomfort', 'Stripy_shimmer', ...
+        'Avoid_Flash','Sun_discomfort','Color_discomfort','Change_discomfort','Motion_discomfort','Clutter_discomfort','Pattern_discomfort', ...
+        'Crowds_discomfort','Reflection_discomfort','Features_discomfort','Flicker_discomfort','Store_discomfort', 'Venue_discomfort', ...
+        'BrightLight_discomfort','Clothing_discomfort', 'AllodyniaComb','AllodyniaPonytail','AllodyniaShave',...
+        'AllodyniaEyeGlasses','AllodyniaContacts','AllodyniaEarrings','AllodyniaNecklace','AllodyniaTightClothes','AllodyniaShower',...
+        'AllodyniaPillow','AllodyniaHeat','AllodyniaCold','AllodyniaNoHA','AnsCorrect','Research','AllodyniaComb_noHA','AllodyniaPonytail_noHA',...
+        'AllodyniaShave_noHA','AllodyniaEyeGlasses_noHA','AllodyniaContacts_noHA','AllodyniaEarrings_noHA','AllodyniaNecklace_noHA','AllodyniaTightClothes_noHA',...
+        'AllodyniaShower_noHA','AllodyniaPillow_noHA','AllodyniaHeat_noHA','AllodyniaCold_noHA','everHA','everDiscomfort'};
+else  % TheraSpecs scale
         T.Properties.VariableNames = {'StartDate','EndDate','Status','IPAddress','Progress','DurationToCompleteSec',...
         'Finished','RecordedDate','ResponseID','LastName','FirstName','Email','ExternalReference','LocationLatitude',...
         'LocationLongitude','DistributionChannel','UserLanguage','Q_RecaptchaScore','Age','Zip','RaceEth','AIAN','AIANtxt',...
@@ -84,6 +104,7 @@ else
         'AllodyniaPillow','AllodyniaHeat','AllodyniaCold','AllodyniaNoHA','AnsCorrect','Research','AllodyniaComb_noHA','AllodyniaPonytail_noHA',...
         'AllodyniaShave_noHA','AllodyniaEyeGlasses_noHA','AllodyniaContacts_noHA','AllodyniaEarrings_noHA','AllodyniaNecklace_noHA','AllodyniaTightClothes_noHA',...
         'AllodyniaShower_noHA','AllodyniaPillow_noHA','AllodyniaHeat_noHA','AllodyniaCold_noHA','everHA','everDiscomfort'};
+
 end
 % Remove empty rows
 T=rmmissing(T,'MinNumMissing',size(T,2));
@@ -291,144 +312,276 @@ T.visLoss = zeros(height(T),1);
 T.visLoss(contains(string(T.VisAura),'Vision loss')==1) = 1;
 
 % photophobia symptoms
-T.lightHA = zeros(height(T),1);
-T.lightHA(contains(string(T.Light_HA),'Rarely')==1) = 1;
-T.lightHA(contains(string(T.Light_HA),'Sometimes')==1) = 2;
-T.lightHA(contains(string(T.Light_HA),'Often')==1) = 3;
-T.lightHA(contains(string(T.Light_HA),'Always')==1) = 4;
 
-T.lightDizzy = zeros(height(T),1);
-T.lightDizzy(contains(string(T.Light_Dizzy),'Rarely')==1) = 1;
-T.lightDizzy(contains(string(T.Light_Dizzy),'Sometimes')==1) = 2;
-T.lightDizzy(contains(string(T.Light_Dizzy),'Often')==1) = 3;
-T.lightDizzy(contains(string(T.Light_Dizzy),'Always')==1) = 4;
+if  ismember('Stripy_discomfort', T.Properties.VariableNames) % CHYPS-V scale  
+    T.StripyDiscomfort = zeros(height(T),1);
+    T.StripyDiscomfort(contains(string(T.Stripy_discomfort),'Almost Never')==1) = 0;
+    T.StripyDiscomfort(contains(string(T.Stripy_discomfort),'Occasionally')==1) = 1;
+    T.StripyDiscomfort(contains(string(T.Stripy_discomfort),'Often')==1) = 2;
+    T.StripyDiscomfort(contains(string(T.Stripy_discomfort),'Almost Always')==1) = 3;
 
-T.lightEyeStrain = zeros(height(T),1);
-T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Rarely')==1) = 1;
-T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Sometimes')==1) = 2;
-T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Often')==1) = 3;
-T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Always')==1) = 4;
+    T.TVDiscomfort = zeros(height(T),1);
+    T.TVDiscomfort(contains(string(T.TV_discomfort),'Almost Never')==1) = 0;
+    T.TVDiscomfort(contains(string(T.TV_discomfort),'Occasionally')==1) = 1;
+    T.TVDiscomfort(contains(string(T.TV_discomfort),'Often')==1) = 2;
+    T.TVDiscomfort(contains(string(T.TV_discomfort),'Almost Always')==1) = 3;
 
-T.lightBlurryVision = zeros(height(T),1);
-T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Rarely')==1) = 1;
-T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Sometimes')==1) = 2;
-T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Often')==1) = 3;
-T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Always')==1) = 4;
+    T.LightsDiscomfort = zeros(height(T),1);
+    T.LightsDiscomfort(contains(string(T.Lights_discomfort),'Almost Never')==1) = 0;
+    T.LightsDiscomfort(contains(string(T.Lights_discomfort),'Occasionally')==1) = 1;
+    T.LightsDiscomfort(contains(string(T.Lights_discomfort),'Often')==1) = 2;
+    T.LightsDiscomfort(contains(string(T.Lights_discomfort),'Almost Always')==1) = 3;
+    
+    T.SportsDiscomfort = zeros(height(T),1);
+    T.SportsDiscomfort(contains(string(T.Sports_discomfort),'Almost Never')==1) = 0;
+    T.SportsDiscomfort(contains(string(T.Sports_discomfort),'Occasionally')==1) = 1;
+    T.SportsDiscomfort(contains(string(T.Sports_discomfort),'Often')==1) = 2;
+    T.SportsDiscomfort(contains(string(T.Sports_discomfort),'Almost Always')==1) = 3;
 
-T.lightIntolerant = zeros(height(T),1);
-T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Rarely')==1) = 1;
-T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Sometimes')==1) = 2;
-T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Often')==1) = 3;
-T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Always')==1) = 4;
+    T.StripyShimmer = zeros(height(T),1);
+    T.StripyShimmer(contains(string(T.Stripy_shimmer),'Almost Never')==1) = 0;
+    T.StripyShimmer(contains(string(T.Stripy_shimmer),'Occasionally')==1) = 1;
+    T.StripyShimmer(contains(string(T.Stripy_shimmer),'Often')==1) = 2;
+    T.StripyShimmer(contains(string(T.Stripy_shimmer),'Almost Always')==1) = 3;
 
-T.lightAnxiety = zeros(height(T),1);
-T.lightAnxiety(contains(string(T.Light_Anxiety),'Rarely')==1) = 1;
-T.lightAnxiety(contains(string(T.Light_Anxiety),'Sometimes')==1) = 2;
-T.lightAnxiety(contains(string(T.Light_Anxiety),'Often')==1) = 3;
-T.lightAnxiety(contains(string(T.Light_Anxiety),'Always')==1) = 4;
+    T.AvoidFlash = zeros(height(T),1);
+    T.AvoidFlash(contains(string(T.Avoid_Flash),'Almost Never')==1) = 0;
+    T.AvoidFlash(contains(string(T.Avoid_Flash),'Occasionally')==1) = 1;
+    T.AvoidFlash(contains(string(T.Avoid_Flash),'Often')==1) = 2;
+    T.AvoidFlash(contains(string(T.Avoid_Flash),'Almost Always')==1) = 3;
 
-T.lightFluorescent = zeros(height(T),1);
-T.lightFluorescent(contains(string(T.Fluorescent),'Rarely')==1) = 1;
-T.lightFluorescent(contains(string(T.Fluorescent),'Sometimes')==1) = 2;
-T.lightFluorescent(contains(string(T.Fluorescent),'Often')==1) = 3;
-T.lightFluorescent(contains(string(T.Fluorescent),'Always')==1) = 4;
+    T.SunDiscomfort = zeros(height(T),1);
+    T.SunDiscomfort(contains(string(T.Sun_discomfort),'Almost Never')==1) = 0;
+    T.SunDiscomfort(contains(string(T.Sun_discomfort),'Occasionally')==1) = 1;
+    T.SunDiscomfort(contains(string(T.Sun_discomfort),'Often')==1) = 2;
+    T.SunDiscomfort(contains(string(T.Sun_discomfort),'Almost Always')==1) = 3;
 
-T.lightFlicker = zeros(height(T),1);
-T.lightFlicker(contains(string(T.Flicker),'Rarely')==1) = 1;
-T.lightFlicker(contains(string(T.Flicker),'Sometimes')==1) = 2;
-T.lightFlicker(contains(string(T.Flicker),'Often')==1) = 3;
-T.lightFlicker(contains(string(T.Flicker),'Always')==1) = 4;
+    T.ColorDiscomfort = zeros(height(T),1);
+    T.ColorDiscomfort(contains(string(T.Color_discomfort),'Almost Never')==1) = 0;
+    T.ColorDiscomfort(contains(string(T.Color_discomfort),'Occasionally')==1) = 1;
+    T.ColorDiscomfort(contains(string(T.Color_discomfort),'Often')==1) = 2;
+    T.ColorDiscomfort(contains(string(T.Color_discomfort),'Almost Always')==1) = 3;
 
-T.lightHeadlight = zeros(height(T),1);
-T.lightHeadlight(contains(string(T.Headlight),'Rarely')==1) = 1;
-T.lightHeadlight(contains(string(T.Headlight),'Sometimes')==1) = 2;
-T.lightHeadlight(contains(string(T.Headlight),'Often')==1) = 3;
-T.lightHeadlight(contains(string(T.Headlight),'Always')==1) = 4;
+    T.ChangeDiscomfort = zeros(height(T),1);
+    T.ChangeDiscomfort(contains(string(T.Change_discomfort),'Almost Never')==1) = 0;
+    T.ChangeDiscomfort(contains(string(T.Change_discomfort),'Occasionally')==1) = 1;
+    T.ChangeDiscomfort(contains(string(T.Change_discomfort),'Often')==1) = 2;
+    T.ChangeDiscomfort(contains(string(T.Change_discomfort),'Almost Always')==1) = 3;
 
-T.lightOutdoorGlare = zeros(height(T),1);
-T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Rarely')==1) = 1;
-T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Sometimes')==1) = 2;
-T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Often')==1) = 3;
-T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Always')==1) = 4;
+    T.MotionDiscomfort = zeros(height(T),1);
+    T.MotionDiscomfort(contains(string(T.Motion_discomfort),'Almost Never')==1) = 0;
+    T.MotionDiscomfort(contains(string(T.Motion_discomfort),'Occasionally')==1) = 1;
+    T.MotionDiscomfort(contains(string(T.Motion_discomfort),'Often')==1) = 2;
+    T.MotionDiscomfort(contains(string(T.Motion_discomfort),'Almost Always')==1) = 3;
 
-T.lightScreen = zeros(height(T),1);
-T.lightScreen(contains(string(T.Screen),'Rarely')==1) = 1;
-T.lightScreen(contains(string(T.Screen),'Sometimes')==1) = 2;
-T.lightScreen(contains(string(T.Screen),'Often')==1) = 3;
-T.lightScreen(contains(string(T.Screen),'Always')==1) = 4;
+    T.ClutterDiscomfort = zeros(height(T),1);
+    T.ClutterDiscomfort(contains(string(T.Clutter_discomfort),'Almost Never')==1) = 0;
+    T.ClutterDiscomfort(contains(string(T.Clutter_discomfort),'Occasionally')==1) = 1;
+    T.ClutterDiscomfort(contains(string(T.Clutter_discomfort),'Often')==1) = 2;
+    T.ClutterDiscomfort(contains(string(T.Clutter_discomfort),'Almost Always')==1) = 3;
+  
+    T.PatternDiscomfort = zeros(height(T),1);
+    T.PatternDiscomfort(contains(string(T.Pattern_discomfort),'Almost Never')==1) = 0;
+    T.PatternDiscomfort(contains(string(T.Pattern_discomfort),'Occasionally')==1) = 1;
+    T.PatternDiscomfort(contains(string(T.Pattern_discomfort),'Often')==1) = 2;
+    T.PatternDiscomfort(contains(string(T.Pattern_discomfort),'Almost Always')==1) = 3;
 
-T.lightSunlight = zeros(height(T),1);
-T.lightSunlight(contains(string(T.Sunlight),'Rarely')==1) = 1;
-T.lightSunlight(contains(string(T.Sunlight),'Sometimes')==1) = 2;
-T.lightSunlight(contains(string(T.Sunlight),'Often')==1) = 3;
-T.lightSunlight(contains(string(T.Sunlight),'Always')==1) = 4;
+    T.CrowdsDiscomfort = zeros(height(T),1);
+    T.CrowdsDiscomfort(contains(string(T.Crowds_discomfort),'Almost Never')==1) = 0;
+    T.CrowdsDiscomfort(contains(string(T.Crowds_discomfort),'Occasionally')==1) = 1;
+    T.CrowdsDiscomfort(contains(string(T.Crowds_discomfort),'Often')==1) = 2;
+    T.CrowdsDiscomfort(contains(string(T.Crowds_discomfort),'Almost Always')==1) = 3;
 
-T.lightTrees = zeros(height(T),1);
-T.lightTrees(contains(string(T.FlickeringTrees),'Rarely')==1) = 1;
-T.lightTrees(contains(string(T.FlickeringTrees),'Sometimes')==1) = 2;
-T.lightTrees(contains(string(T.FlickeringTrees),'Often')==1) = 3;
-T.lightTrees(contains(string(T.FlickeringTrees),'Always')==1) = 4;
+    T.ReflectionDiscomfort = zeros(height(T),1);
+    T.ReflectionDiscomfort(contains(string(T.Reflection_discomfort),'Almost Never')==1) = 0;
+    T.ReflectionDiscomfort(contains(string(T.Reflection_discomfort),'Occasionally')==1) = 1;
+    T.ReflectionDiscomfort(contains(string(T.Reflection_discomfort),'Often')==1) = 2;
+    T.ReflectionDiscomfort(contains(string(T.Reflection_discomfort),'Almost Always')==1) = 3;
 
-T.lightGlassesSun = zeros(height(T),1);
-T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Rarely')==1) = 1;
-T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Sometimes')==1) = 2;
-T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Often')==1) = 3;
-T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Always')==1) = 4;
+    T.FeaturesDiscomfort = zeros(height(T),1);
+    T.FeaturesDiscomfort(contains(string(T.Features_discomfort),'Almost Never')==1) = 0;
+    T.FeaturesDiscomfort(contains(string(T.Features_discomfort),'Occasionally')==1) = 1;
+    T.FeaturesDiscomfort(contains(string(T.Features_discomfort),'Often')==1) = 2;
+    T.FeaturesDiscomfort(contains(string(T.Features_discomfort),'Almost Always')==1) = 3;
 
-T.lightGlassesInd = zeros(height(T),1);
-T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Rarely')==1) = 1;
-T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Sometimes')==1) = 2;
-T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Often')==1) = 3;
-T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Always')==1) = 4;
+    T.FlickerDiscomfort = zeros(height(T),1);
+    T.FlickerDiscomfort(contains(string(T.Flicker_discomfort),'Almost Never')==1) = 0;
+    T.FlickerDiscomfort(contains(string(T.Flicker_discomfort),'Occasionally')==1) = 1;
+    T.FlickerDiscomfort(contains(string(T.Flicker_discomfort),'Often')==1) = 2;
+    T.FlickerDiscomfort(contains(string(T.Flicker_discomfort),'Almost Always')==1) = 3;
 
-T.lightSeekDark = zeros(height(T),1);
-T.lightSeekDark(contains(string(T.SeekDarkness),'Rarely')==1) = 1;
-T.lightSeekDark(contains(string(T.SeekDarkness),'Sometimes')==1) = 2;
-T.lightSeekDark(contains(string(T.SeekDarkness),'Often')==1) = 3;
-T.lightSeekDark(contains(string(T.SeekDarkness),'Always')==1) = 4;
+    T.StoreDiscomfort = zeros(height(T),1);
+    T.StoreDiscomfort(contains(string(T.Store_discomfort),'Almost Never')==1) = 0;
+    T.StoreDiscomfort(contains(string(T.Store_discomfort),'Occasionally')==1) = 1;
+    T.StoreDiscomfort(contains(string(T.Store_discomfort),'Often')==1) = 2;
+    T.StoreDiscomfort(contains(string(T.Store_discomfort),'Almost Always')==1) = 3;
 
-T.lightLimTV = zeros(height(T),1);
-T.lightLimTV(contains(string(T.LightTvLimit),'Rarely')==1) = 1;
-T.lightLimTV(contains(string(T.LightTvLimit),'Sometimes')==1) = 2;
-T.lightLimTV(contains(string(T.LightTvLimit),'Often')==1) = 3;
-T.lightLimTV(contains(string(T.LightTvLimit),'Always')==1) = 4;
+    T.VenueDiscomfort = zeros(height(T),1);
+    T.VenueDiscomfort(contains(string(T.Venue_discomfort),'Almost Never')==1) = 0;
+    T.VenueDiscomfort(contains(string(T.Venue_discomfort),'Occasionally')==1) = 1;
+    T.VenueDiscomfort(contains(string(T.Venue_discomfort),'Often')==1) = 2;
+    T.VenueDiscomfort(contains(string(T.Venue_discomfort),'Almost Always')==1) = 3;
 
-T.lightLimDevice = zeros(height(T),1);
-T.lightLimDevice(contains(string(T.LightDeviceLimit),'Rarely')==1) = 1;
-T.lightLimDevice(contains(string(T.LightDeviceLimit),'Sometimes')==1) = 2;
-T.lightLimDevice(contains(string(T.LightDeviceLimit),'Often')==1) = 3;
-T.lightLimDevice(contains(string(T.LightDeviceLimit),'Always')==1) = 4;
+    T.BrightLightDiscomfort = zeros(height(T),1);
+    T.BrightLightDiscomfort(contains(string(T.BrightLight_discomfort),'Almost Never')==1) = 0;
+    T.BrightLightDiscomfort(contains(string(T.BrightLight_discomfort),'Occasionally')==1) = 1;
+    T.BrightLightDiscomfort(contains(string(T.BrightLight_discomfort),'Often')==1) = 2;
+    T.BrightLightDiscomfort(contains(string(T.BrightLight_discomfort),'Almost Always')==1) = 3;
 
-T.lightLimShops = zeros(height(T),1);
-T.lightLimShops(contains(string(T.LightShopsLimit),'Rarely')==1) = 1;
-T.lightLimShops(contains(string(T.LightShopsLimit),'Sometimes')==1) = 2;
-T.lightLimShops(contains(string(T.LightShopsLimit),'Often')==1) = 3;
-T.lightLimShops(contains(string(T.LightShopsLimit),'Always')==1) = 4;
+    T.ClothingDiscomfort = zeros(height(T),1);
+    T.ClothingDiscomfort(contains(string(T.Clothing_discomfort),'Almost Never')==1) = 0;
+    T.ClothingDiscomfort(contains(string(T.Clothing_discomfort),'Occasionally')==1) = 1;
+    T.ClothingDiscomfort(contains(string(T.Clothing_discomfort),'Often')==1) = 2;
+    T.ClothingDiscomfort(contains(string(T.Clothing_discomfort),'Almost Always')==1) = 3;
 
-T.lightLimDrive = zeros(height(T),1);
-T.lightLimDrive(contains(string(T.LightDriveLimit),'Rarely')==1) = 1;
-T.lightLimDrive(contains(string(T.LightDriveLimit),'Sometimes')==1) = 2;
-T.lightLimDrive(contains(string(T.LightDriveLimit),'Often')==1) = 3;
-T.lightLimDrive(contains(string(T.LightDriveLimit),'Always')==1) = 4;
+    T.CHYPS_total_score = sum([T.StripyDiscomfort, T.TVDiscomfort, T.LightsDiscomfort, T.SportsDiscomfort, ...
+    T.StripyShimmer, T.AvoidFlash, T.SunDiscomfort, T.ColorDiscomfort, T.ChangeDiscomfort, T.MotionDiscomfort, ...
+    T.ClutterDiscomfort, T.PatternDiscomfort, T.CrowdsDiscomfort, T.ReflectionDiscomfort, ...
+    T.FeaturesDiscomfort, T.FlickerDiscomfort, T.StoreDiscomfort, T.VenueDiscomfort, ...
+    T.BrightLightDiscomfort, T.ClothingDiscomfort], 2);
 
-T.lightLimWork = zeros(height(T),1);
-T.lightLimWork(contains(string(T.LightWorkLimit),'Rarely')==1) = 1;
-T.lightLimWork(contains(string(T.LightWorkLimit),'Sometimes')==1) = 2;
-T.lightLimWork(contains(string(T.LightWorkLimit),'Often')==1) = 3;
-T.lightLimWork(contains(string(T.LightWorkLimit),'Always')==1) = 4;
+else   % TheraSpecs scale
+    T.lightHA = zeros(height(T),1);
+    T.lightHA(contains(string(T.Light_HA),'Rarely')==1) = 1;
+    T.lightHA(contains(string(T.Light_HA),'Sometimes')==1) = 2;
+    T.lightHA(contains(string(T.Light_HA),'Often')==1) = 3;
+    T.lightHA(contains(string(T.Light_HA),'Always')==1) = 4;
 
-T.lightLimOutdoor = zeros(height(T),1);
-T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Rarely')==1) = 1;
-T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Sometimes')==1) = 2;
-T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Often')==1) = 3;
-T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Always')==1) = 4;
+    T.lightDizzy = zeros(height(T),1);
+    T.lightDizzy(contains(string(T.Light_Dizzy),'Rarely')==1) = 1;
+    T.lightDizzy(contains(string(T.Light_Dizzy),'Sometimes')==1) = 2;
+    T.lightDizzy(contains(string(T.Light_Dizzy),'Often')==1) = 3;
+    T.lightDizzy(contains(string(T.Light_Dizzy),'Always')==1) = 4;
 
-T.lightSx_score = sum([T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety],2);
-T.lightBother_score = sum([T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight T.lightScreen],2);
-T.lightAvoidance_score = sum([T.lightGlassesSun T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
-    T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor],2);
-T.lightFlicker_score = sum([T.lightFluorescent T.lightFlicker T.lightTrees T.lightScreen],2);
-T.lightStatic_score = sum([T.lightOutdoorGlare T.lightSunlight T.lightHeadlight],2);
+    T.lightEyeStrain = zeros(height(T),1);
+    T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Rarely')==1) = 1;
+    T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Sometimes')==1) = 2;
+    T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Often')==1) = 3;
+    T.lightEyeStrain(contains(string(T.Light_EyeStrain),'Always')==1) = 4;
+
+    T.lightBlurryVision = zeros(height(T),1);
+    T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Rarely')==1) = 1;
+    T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Sometimes')==1) = 2;
+    T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Often')==1) = 3;
+    T.lightBlurryVision(contains(string(T.Light_BlurryVision),'Always')==1) = 4;
+
+    T.lightIntolerant = zeros(height(T),1);
+    T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Rarely')==1) = 1;
+    T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Sometimes')==1) = 2;
+    T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Often')==1) = 3;
+    T.lightIntolerant(contains(string(T.Light_LightIntolerant),'Always')==1) = 4;
+
+    T.lightAnxiety = zeros(height(T),1);
+    T.lightAnxiety(contains(string(T.Light_Anxiety),'Rarely')==1) = 1;
+    T.lightAnxiety(contains(string(T.Light_Anxiety),'Sometimes')==1) = 2;
+    T.lightAnxiety(contains(string(T.Light_Anxiety),'Often')==1) = 3;
+    T.lightAnxiety(contains(string(T.Light_Anxiety),'Always')==1) = 4;
+
+    T.lightFluorescent = zeros(height(T),1);
+    T.lightFluorescent(contains(string(T.Fluorescent),'Rarely')==1) = 1;
+    T.lightFluorescent(contains(string(T.Fluorescent),'Sometimes')==1) = 2;
+    T.lightFluorescent(contains(string(T.Fluorescent),'Often')==1) = 3;
+    T.lightFluorescent(contains(string(T.Fluorescent),'Always')==1) = 4;
+
+    T.lightFlicker = zeros(height(T),1);
+    T.lightFlicker(contains(string(T.Flicker),'Rarely')==1) = 1;
+    T.lightFlicker(contains(string(T.Flicker),'Sometimes')==1) = 2;
+    T.lightFlicker(contains(string(T.Flicker),'Often')==1) = 3;
+    T.lightFlicker(contains(string(T.Flicker),'Always')==1) = 4;
+
+    T.lightHeadlight = zeros(height(T),1);
+    T.lightHeadlight(contains(string(T.Headlight),'Rarely')==1) = 1;
+    T.lightHeadlight(contains(string(T.Headlight),'Sometimes')==1) = 2;
+    T.lightHeadlight(contains(string(T.Headlight),'Often')==1) = 3;
+    T.lightHeadlight(contains(string(T.Headlight),'Always')==1) = 4;
+
+    T.lightOutdoorGlare = zeros(height(T),1);
+    T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Rarely')==1) = 1;
+    T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Sometimes')==1) = 2;
+    T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Often')==1) = 3;
+    T.lightOutdoorGlare(contains(string(T.OutdoorGlare),'Always')==1) = 4;
+
+    T.lightScreen = zeros(height(T),1);
+    T.lightScreen(contains(string(T.Screen),'Rarely')==1) = 1;
+    T.lightScreen(contains(string(T.Screen),'Sometimes')==1) = 2;
+    T.lightScreen(contains(string(T.Screen),'Often')==1) = 3;
+    T.lightScreen(contains(string(T.Screen),'Always')==1) = 4;
+
+    T.lightSunlight = zeros(height(T),1);
+    T.lightSunlight(contains(string(T.Sunlight),'Rarely')==1) = 1;
+    T.lightSunlight(contains(string(T.Sunlight),'Sometimes')==1) = 2;
+    T.lightSunlight(contains(string(T.Sunlight),'Often')==1) = 3;
+    T.lightSunlight(contains(string(T.Sunlight),'Always')==1) = 4;
+
+    T.lightTrees = zeros(height(T),1);
+    T.lightTrees(contains(string(T.FlickeringTrees),'Rarely')==1) = 1;
+    T.lightTrees(contains(string(T.FlickeringTrees),'Sometimes')==1) = 2;
+    T.lightTrees(contains(string(T.FlickeringTrees),'Often')==1) = 3;
+    T.lightTrees(contains(string(T.FlickeringTrees),'Always')==1) = 4;
+
+    T.lightGlassesSun = zeros(height(T),1);
+    T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Rarely')==1) = 1;
+    T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Sometimes')==1) = 2;
+    T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Often')==1) = 3;
+    T.lightGlassesSun(contains(string(T.SunglassesSunlight),'Always')==1) = 4;
+
+    T.lightGlassesInd = zeros(height(T),1);
+    T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Rarely')==1) = 1;
+    T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Sometimes')==1) = 2;
+    T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Often')==1) = 3;
+    T.lightGlassesInd(contains(string(T.SunglassesIndoors),'Always')==1) = 4;
+
+    T.lightSeekDark = zeros(height(T),1);
+    T.lightSeekDark(contains(string(T.SeekDarkness),'Rarely')==1) = 1;
+    T.lightSeekDark(contains(string(T.SeekDarkness),'Sometimes')==1) = 2;
+    T.lightSeekDark(contains(string(T.SeekDarkness),'Often')==1) = 3;
+    T.lightSeekDark(contains(string(T.SeekDarkness),'Always')==1) = 4;
+
+    T.lightLimTV = zeros(height(T),1);
+    T.lightLimTV(contains(string(T.LightTvLimit),'Rarely')==1) = 1;
+    T.lightLimTV(contains(string(T.LightTvLimit),'Sometimes')==1) = 2;
+    T.lightLimTV(contains(string(T.LightTvLimit),'Often')==1) = 3;
+    T.lightLimTV(contains(string(T.LightTvLimit),'Always')==1) = 4;
+
+    T.lightLimDevice = zeros(height(T),1);
+    T.lightLimDevice(contains(string(T.LightDeviceLimit),'Rarely')==1) = 1;
+    T.lightLimDevice(contains(string(T.LightDeviceLimit),'Sometimes')==1) = 2;
+    T.lightLimDevice(contains(string(T.LightDeviceLimit),'Often')==1) = 3;
+    T.lightLimDevice(contains(string(T.LightDeviceLimit),'Always')==1) = 4;
+
+    T.lightLimShops = zeros(height(T),1);
+    T.lightLimShops(contains(string(T.LightShopsLimit),'Rarely')==1) = 1;
+    T.lightLimShops(contains(string(T.LightShopsLimit),'Sometimes')==1) = 2;
+    T.lightLimShops(contains(string(T.LightShopsLimit),'Often')==1) = 3;
+    T.lightLimShops(contains(string(T.LightShopsLimit),'Always')==1) = 4;
+
+    T.lightLimDrive = zeros(height(T),1);
+    T.lightLimDrive(contains(string(T.LightDriveLimit),'Rarely')==1) = 1;
+    T.lightLimDrive(contains(string(T.LightDriveLimit),'Sometimes')==1) = 2;
+    T.lightLimDrive(contains(string(T.LightDriveLimit),'Often')==1) = 3;
+    T.lightLimDrive(contains(string(T.LightDriveLimit),'Always')==1) = 4;
+
+    T.lightLimWork = zeros(height(T),1);
+    T.lightLimWork(contains(string(T.LightWorkLimit),'Rarely')==1) = 1;
+    T.lightLimWork(contains(string(T.LightWorkLimit),'Sometimes')==1) = 2;
+    T.lightLimWork(contains(string(T.LightWorkLimit),'Often')==1) = 3;
+    T.lightLimWork(contains(string(T.LightWorkLimit),'Always')==1) = 4;
+
+    T.lightLimOutdoor = zeros(height(T),1);
+    T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Rarely')==1) = 1;
+    T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Sometimes')==1) = 2;
+    T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Often')==1) = 3;
+    T.lightLimOutdoor(contains(string(T.LightOutdoorLimit),'Always')==1) = 4;
+
+    % Calculating TheraSpecs scores
+    T.lightSx_score = sum([T.lightHA T.lightDizzy T.lightEyeStrain T.lightBlurryVision T.lightIntolerant T.lightAnxiety],2);
+    T.lightBother_score = sum([T.lightFluorescent T.lightFlicker T.lightOutdoorGlare T.lightTrees T.lightSunlight T.lightHeadlight T.lightScreen],2);
+    T.lightAvoidance_score = sum([T.lightGlassesSun T.lightGlassesInd T.lightSeekDark T.lightLimTV T.lightLimDevice...
+        T.lightLimShops T.lightLimDrive T.lightLimWork T.lightLimOutdoor],2);
+    T.lightFlicker_score = sum([T.lightFluorescent T.lightFlicker T.lightTrees T.lightScreen],2);
+    T.lightStatic_score = sum([T.lightOutdoorGlare T.lightSunlight T.lightHeadlight],2);
+    
+end
 
 T.ContinuousHA = zeros(height(T),1);
 T.ContinuousHA(contains(string(T.contHAsomeBreaks),'no breaks')==1) = 1;
