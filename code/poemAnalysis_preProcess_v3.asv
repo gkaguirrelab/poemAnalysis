@@ -447,10 +447,8 @@ if  ismember('Stripy_discomfort', T.Properties.VariableNames) % CHYPS-V scale
         T.FeaturesDiscomfort, T.ClothingDiscomfort], 2);
 
     T.CHYPS_Strobing = sum([T.TVDiscomfort, T.AvoidFlash, T.MotionDiscomfort, ...
-        T.FlickerDiscomfort, T.VenueDiscomfort], 2);
-
-    T.CHYPS_IntenseVisEnviro = sum([T.SportsDiscomfort,  T.ColorDiscomfort, ...
-        T.ClutterDiscomfort, T.CrowdsDiscomfort, T.StoreDiscomfort], 2);
+            , T.FlickerDiscomfort, T.VenueDiscomfort, ...
+        T.BrightLightDiscomfort, T.ClothingDiscomfort], 2);
 
 else   % TheraSpecs scale
     T.lightHA = zeros(height(T),1);
