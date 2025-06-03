@@ -54,6 +54,7 @@ figHandle = figure();
 set(gcf, 'color', 'none');
 figuresize(length(varsToPlot)*2,2,'inches');
 tiledlayout(1,length(varsToPlot),'TileSpacing','tight','Padding','tight');
+idxSet = [1 3];
 for vv = 1:3
 
     vals = double(Results.(varsToPlot{vv}));
@@ -61,9 +62,9 @@ for vv = 1:3
     X = edges(1:end-1) + diff(edges)/2;
     nexttile(vv)
     plot([0 xlimMax(vv)],[0 0],':k');
-
     veridicalVals = [];
-    for gg = [1 3]
+    lineHandles = [];
+    for gg = idxSet
 
         idx = eval(groups{gg});
         veridicalVals{gg} = vals(idx);
@@ -83,31 +84,33 @@ for vv = 1:3
         Ysem = std(Yboot,[],1);
         patch([X,fliplr(X)],[Y+Ysem,fliplr(Y-Ysem)],plotPatchColors{gg},'FaceAlpha',0.1,'EdgeColor','none');
         hold on
-        lineHandles(gg) = plot(X,Y,'.-','Color',plotLineColors{gg},'MarkerSize',10,'LineWidth',1.5);
+            lineHandles(gg) = plot(X,Y,'.-','Color',plotLineColors{gg},'MarkerSize',10,'LineWidth',1.5);
     end
 
     % Clean up
     a = gca();
     a.Color = 'none';
     box off
-            a.YTick = 0:0.75:ylimMax(vv);
+    a.YTick = 0:0.75:ylimMax(vv);
     switch vv
         case 1
             ylabel('Proportion subjects');
+                        a.YTick = 0:0.75:ylimMax(vv);
+
         case 2
-            a.YTick = [];
-        case 3
             a.YTick = [];
             for gg = [1 3]
                 lgndText{gg} = sprintf([groupLabels{gg} ', n=%d'],nSubs(gg));
             end
-%            lh = legend(lineHandles,lgndText,'Location','northeast');
-%            lh.Box = 'off';
+           lh = legend(lineHandles(idxSet),lgndText(idxSet),'Location','north');
+           lh.Box = 'off';
+        case 3
+            a.YTick = [];
     end
     ylim([-0.05,ylimMax(vv)]);
     xlim([0,xlimMax(vv)]);
     a.TickDir = 'out';
-%    title(varsToPlot{vv});
+       title(varsToPlot{vv});
     xlabel(scoreLabel{vv});
     a.XTick = 0:xtickSpacing(vv):xlimMax(vv);
     a.XTickLabelRotation = 45;
@@ -206,20 +209,24 @@ for vv = 1:length(varsToPlot)
         if vv == 1
             ylabel('Proportion subjects');
             a.YTick = 0:0.75:ylimMax(vv);
+        end
+        if vv == 2
+            a.YTick = [];
+            lgndText = {};
             for pp = 1:2
                 lgndText{pp} = sprintf([thisPair{pp} ', n=%d'],nSubs(pp));
             end
-%            lh = legend(lineHandles,lgndText,'Location','east');
-%            lh.Box = 'off';
-%            text(xlimMax(vv)*0.75,0.5,thisCondition,'HorizontalAlignment','right');
-        else
+           lh = legend(lineHandles,lgndText,'Location','north');
+           lh.Box = 'off';
+        end
+        if vv == 3
             a.YTick = [];
         end
         ylim([-0.05,ylimMax(vv)]);
         xlim([0,xlimMax(vv)]);
         a.TickDir = 'out';
         if cc == 1
-%            title(varsToPlot{vv});
+           title(varsToPlot{vv});
         end
         if cc == length(conditionOn)
             xlabel(scoreLabel{vv});
@@ -230,14 +237,16 @@ for vv = 1:length(varsToPlot)
             a.XAxis.Visible = 'off';
         end
 
-%        kstext = sprintf('KS = %2.2f, p = %0.1e',ks2stat,p);
-%        text(xlimMax(vv)*0.05,0.7,kstext,'HorizontalAlignment','left');
+       kstext = sprintf('KS = %2.2f, p = %0.1e',ks2stat,p);
+       text(xlimMax(vv)*0.05,0.7,kstext,'HorizontalAlignment','left');
+                  title(varsToPlot{vv});
 axis square
     end
 
 end
 plotFileName = fullfile(figSaveDir,'POEM_v3.1_ConditionalSymptomHistograms.pdf');
 saveas(figHandle,plotFileName);
+
 
 
 %% Correlation of measures in people with migraine
@@ -247,37 +256,20 @@ fprintf('Correlation of MIDAS with ASC-12 in migraine: Spearman rho = %2.2f, p =
 [rho,pval]=corr(Results.MIDAS(migraineIdx),Results.LightSensScore(migraineIdx),'Type','Spearman');
 fprintf('Correlation of MIDAS with Light Sensitivity in migraine: Spearman rho = %2.2f, p = %0.1e\n',rho,pval);
 
-[rho,pval]=corr(Results.AllodyniaScore(migraineIdx),Results.LightSensScore(migraineIdx),'Type','Spearman');
-fprintf('Correlation of ASC-12 with Light Sensitivity in migraine: Spearman rho = %2.2f, p = %0.1e\n',rho,pval);
+
 
 % Plot the light / touch sensitivity scatter for migraine with and without
 % aura
 wIdx = and(migraineIdx,contains(cellstr(Results.DxFull),'w/aura'));
 woIdx = and(migraineIdx,contains(cellstr(Results.DxFull),'w/out'));
 
-corr(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx))
-corr(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx))
 
-subplot(1,2,2)
-scatter(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx),50,...
-    'MarkerFaceColor','b','MarkerEdgeColor','none',...
-    'MarkerFaceAlpha',.25);
-refline
-refline
-axis square
-box off
-xlabel('Light sensitivity score');
-ylabel('Allodynia score');
-a = gca();
-a.TickDir = 'out';
-a.XTick = 0:20:80;
-xlim([0 80])
-ylim([0 25])
-a.FontSize = 14;
-%title('M w/Aura')
+set(gcf, 'color', 'none');
+figuresize(2*3,3,'inches');
+tiledlayout(1,2,'TileSpacing','tight','Padding','tight');
 
 
-subplot(1,2,1)
+nexttile();
 scatter(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx),50,...
     'MarkerFaceColor','r','MarkerEdgeColor','none',...
     'MarkerFaceAlpha',.25);
@@ -289,9 +281,60 @@ ylabel('Allodynia score');
 a = gca();
 a.TickDir = 'out';
 a.XTick = 0:20:80;
-xlim([0 80])
-ylim([0 25])
+xlim([-5 80])
+ylim([-2.5 25])
 a.FontSize = 14;
-%title('M wo/Aura')
+title(sprintf('M wo/Aura r=%2.2f',corr(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx))));
 
 
+nexttile();
+scatter(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx),50,...
+    'MarkerFaceColor','b','MarkerEdgeColor','none',...
+    'MarkerFaceAlpha',.25);
+refline
+axis square
+box off
+xlabel('Light sensitivity score');
+ylabel('Allodynia score');
+a = gca();
+a.TickDir = 'out';
+a.XTick = 0:20:80;
+xlim([-5 80])
+ylim([-2.5 25])
+a.FontSize = 14;
+title(sprintf('M w/Aura r=%2.2f',corr(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx))));
+
+
+plotFileName = fullfile(figSaveDir,'POEM_v3.1_SymptomScatterPlot.pdf');
+saveas(figHandle,plotFileName);
+
+
+%% Report significance of difference in correlation coefficients
+p = compare_correlation_coefficients(...
+    corr(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx)),...
+    corr(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx)),...
+    sum(woIdx),sum(wIdx));
+fprintf('Difference in correlation of light and touch sens between MwA and MwoA: p = %2.4f\n',p)
+
+
+%% Report differences in headache frequency and severity between groups
+[h,p,ci,stats] = ttest2(Results.MigraineFrequency(woIdx),Results.MigraineFrequency(wIdx));
+fprintf('Migraine Freq woA = %2.1f, wA = %2.1f, t(%ddf)=%2.2f,p=%2.2f\n',...
+    mean(Results.MigraineFrequency(woIdx)),...
+    mean(Results.MigraineFrequency(wIdx)),...
+    stats.df,stats.tstat,p);
+
+[h,p,ci,stats] = ttest2(Results.HAseverity(woIdx),Results.HAseverity(wIdx));
+fprintf('Headache Severity woA = %2.1f, wA = %2.1f, t(%ddf)=%2.2f,p=%2.2f\n',...
+    mean(Results.HAseverity(woIdx)),...
+    mean(Results.HAseverity(wIdx)),...
+    stats.df,stats.tstat,p);
+
+
+
+function p = compare_correlation_coefficients(r1,r2,n1,n2)
+t_r1 = 0.5*log((1+r1) /(1-r1));
+t_r2 = 0.5*log((1+r2) / (1-r2));
+z = (t_r1-t_r2) / sqrt(1/(n1-3)+1/(n2-3));
+p = (1-normcdf (abs (z) ,0,1))*2;
+end
