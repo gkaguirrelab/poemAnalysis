@@ -6,7 +6,9 @@ function [Dx] = poemAnalysis_classify_v3( T )
 
 Dx = T(:,20); % start table with SubjectID
 
-Dx.CHYPS = T.CHYPS_total_score;
+if isfield(T,'CHYPS_total_score')
+    Dx.CHYPS = T.CHYPS_total_score;
+end
 Dx.MigraineFrequency = T.MigFreq;
 
 Dx.Migraine = zeros(height(Dx),1);
