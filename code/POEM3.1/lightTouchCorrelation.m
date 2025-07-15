@@ -3,6 +3,9 @@ clear variables
 
 poemAnalysis_main_v3
 
+
+
+
 figSaveDir = '~/Desktop';
 
 
@@ -22,22 +25,6 @@ haFIdx = strcmp(haFDx,cellstr(Results.DxFull));
 allIdx = 1:size(Results,1);
 
 
-
-%% US Map of all respondants
-figHandle = figure();
-set(gcf, 'color', 'none');
-figuresize(4,3,'inches');
-latVec = double(T.LocationLatitude);
-lonVec = double(T.LocationLongitude);
-gp = geoplot(latVec(allIdx),lonVec(allIdx),'o','MarkerSize',5,'MarkerEdgeColor','none','MarkerFaceColor',[1 0 0]);
-geobasemap darkwater
-geolimits([25 50],[-130 -60]);
-a = gca();
-a.AxisColor = 'none';
-a.Grid = 'off';
-a.Scalebar.Visible = 'off';
-plotFileName = fullfile(figSaveDir,'POEM_v3.1_MapAllRespondents.pdf');
-saveas(figHandle,plotFileName);
 
 
 %% Create symptom score plots for each group
@@ -309,6 +296,26 @@ plotFileName = fullfile(figSaveDir,'POEM_v3.1_SymptomScatterPlot.pdf');
 saveas(figHandle,plotFileName);
 
 
+%% US Map of all respondants
+% Different colors for migraine with and without
+figHandle = figure();
+set(gcf, 'color', 'none');
+figuresize(4,3,'inches');
+latVec = double(T.LocationLatitude);
+lonVec = double(T.LocationLongitude);
+gp = geoplot(latVec(wIdx),lonVec(wIdx),'o','MarkerSize',5,'MarkerEdgeColor','none','MarkerFaceColor',[0 0 1]);
+hold on
+gp = geoplot(latVec(woIdx),lonVec(woIdx),'o','MarkerSize',5,'MarkerEdgeColor','none','MarkerFaceColor',[1 0 0]);
+geobasemap grayland
+geolimits([25 50],[-130 -60]);
+a = gca();
+a.AxisColor = 'none';
+a.Grid = 'off';
+a.Scalebar.Visible = 'off';
+plotFileName = fullfile(figSaveDir,'POEM_v3.1_MapAllRespondents.pdf');
+saveas(figHandle,plotFileName);
+
+
 %% Report significance of difference in correlation coefficients
 p = compare_correlation_coefficients(...
     corr(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx)),...
@@ -329,6 +336,47 @@ fprintf('Headache Severity woA = %2.1f, wA = %2.1f, t(%ddf)=%2.2f,p=%2.2f\n',...
     mean(Results.HAseverity(woIdx)),...
     mean(Results.HAseverity(wIdx)),...
     stats.df,stats.tstat,p);
+
+[h,p,ci,stats] = ttest2(Results.MIDAS(woIdx),Results.MIDAS(wIdx));
+fprintf('MIDAS woA = %2.1f, wA = %2.1f, t(%ddf)=%2.2f,p=%2.2f\n',...
+    mean(Results.MIDAS(woIdx)),...
+    mean(Results.MIDAS(wIdx)),...
+    stats.df,stats.tstat,p);
+
+%% Build a patient summary table
+VarNames = ["n","Age","SAAB-%M","MIDAS","Freq","Sev"];
+RowNames = ["woAura","wAuta"];
+
+idxSet = {woIdx,wIdx};
+clear Q
+
+VarNames = {'n','SAAB','Age','MIDAS','MigraineFrequency','HAseverity','Chronic','VisualAura','SensAura','SpeechAura'};
+for ii = 1:2
+    Q{1,ii} = sum(idxSet{ii});
+end
+
+for vv = 2:2
+for ii = 1:2
+    dataSet = Results.(VarNames{vv})(idxSet{ii});
+    Q{vv,ii} = sum(dataSet=='Female')/(sum(dataSet=='Male')+sum(dataSet=='Female'));
+end
+end
+
+for vv = 3:6
+for ii = 1:2
+    dataSet = Results.(VarNames{vv})(idxSet{ii});
+    % Special case to remove weird age of 558
+    dataSet = dataSet(dataSet~=558);
+    Q{vv,ii}=sprintf('%2.1f ± %2.1f',mean(dataSet),std(dataSet));
+end
+end
+
+for vv = 7:10
+for ii = 1:2
+    dataSet = Dx.(VarNames{vv})(idxSet{ii});
+    Q{vv,ii} = sum(dataSet==1)/(sum(dataSet==1)+sum(dataSet==0));
+end
+end
 
 
 
