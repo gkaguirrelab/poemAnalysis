@@ -6,7 +6,7 @@ function [Dx] = poemAnalysis_classify_v3( T )
 
 Dx = T(:,20); % start table with SubjectID
 
-if isfield(T,'CHYPS_total_score')
+if ismember('CHYPS_total_score', T.Properties.VariableNames) % Check if CHYPS_total_score is a column of the table
     Dx.CHYPS = T.CHYPS_total_score;
 end
 Dx.MigraineFrequency = T.MigFreq;
