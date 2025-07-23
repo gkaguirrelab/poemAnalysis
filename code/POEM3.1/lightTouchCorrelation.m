@@ -12,12 +12,13 @@ figSaveDir = '~/Desktop';
 nBoots = 100;
 nBins = 7;
 
-migraineDx = {'migraine w/out aura','migraine w/aura'};
+migraineDx = {'migraine w/out aura','migraine w/aura','probable migraine w/out aura','probable migraine w/aura'};
 probMigraineDx = {'probable migraine w/out aura','probable migraine w/aura'};
 haFDx = {'no headache'};
 nonMigHaDx = {'non-migraine headache'};
-migraineIdx = or(strcmp(migraineDx{1},cellstr(Results.DxFull)),...
-    strcmp(migraineDx{2},cellstr(Results.DxFull)));
+migraineIdx = strcmp(migraineDx{1},cellstr(Results.DxFull)) +...
+    strcmp(migraineDx{2},cellstr(Results.DxFull));
+migraineIdx = logical(migraineIdx);
 probMigIdx = or(strcmp(probMigraineDx{1},cellstr(Results.DxFull)),...
     strcmp(probMigraineDx{2},cellstr(Results.DxFull)));
 otherHaIdx = strcmp(nonMigHaDx,cellstr(Results.DxFull));
@@ -260,7 +261,13 @@ nexttile();
 scatter(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx),50,...
     'MarkerFaceColor','r','MarkerEdgeColor','none',...
     'MarkerFaceAlpha',.25);
-refline
+hold on
+mdl = fitlm(table(Results.LightSensScore(woIdx),Results.AllodyniaScore(woIdx)));
+[ypred, yci_curve] = predict(mdl, Results.LightSensScore(woIdx), 'Prediction', 'curve'); % Curve (fit)
+[~, yci_obs] = predict(mdl, Results.LightSensScore(woIdx), 'Prediction', 'observation'); % Observation (new data)
+plot(sort(Results.LightSensScore(woIdx)), sort(ypred), 'k-', 'LineWidth', 2, 'DisplayName', 'Fit'); % Fitted line
+plot(sort(Results.LightSensScore(woIdx)), sort(yci_curve), 'k--', 'LineWidth', 1.5, 'DisplayName', 'Confidence Bounds'); % Confidence intervals for the fit
+
 axis square
 box off
 xlabel('Light sensitivity score');
@@ -276,9 +283,16 @@ title(sprintf('M wo/Aura r=%2.2f',corr(Results.LightSensScore(woIdx),Results.All
 
 nexttile();
 scatter(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx),50,...
-    'MarkerFaceColor','b','MarkerEdgeColor','none',...
-    'MarkerFaceAlpha',.25);
-refline
+   'MarkerFaceColor','b','MarkerEdgeColor','none',...
+   'MarkerFaceAlpha',.25);
+
+hold on
+mdl = fitlm(table(Results.LightSensScore(wIdx),Results.AllodyniaScore(wIdx)));
+[ypred, yci_curve] = predict(mdl, Results.LightSensScore(wIdx), 'Prediction', 'curve'); % Curve (fit)
+[~, yci_obs] = predict(mdl, Results.LightSensScore(wIdx), 'Prediction', 'observation'); % Observation (new data)
+plot(sort(Results.LightSensScore(wIdx)), sort(ypred), 'k-', 'LineWidth', 2, 'DisplayName', 'Fit'); % Fitted line
+plot(sort(Results.LightSensScore(wIdx)), sort(yci_curve), 'k--', 'LineWidth', 1.5, 'DisplayName', 'Confidence Bounds'); % Confidence intervals for the fit
+
 axis square
 box off
 xlabel('Light sensitivity score');
@@ -344,13 +358,13 @@ fprintf('MIDAS woA = %2.1f, wA = %2.1f, t(%ddf)=%2.2f,p=%2.2f\n',...
     stats.df,stats.tstat,p);
 
 %% Build a patient summary table
-VarNames = ["n","Age","SAAB-%M","MIDAS","Freq","Sev"];
+VarNames = ["n","Age","SAAB-%M","MIDAS","Freq","Sev","Chronic","Visual only","Sens only","Both","Other"];
 RowNames = ["woAura","wAuta"];
 
 idxSet = {woIdx,wIdx};
 clear Q
 
-VarNames = {'n','SAAB','Age','MIDAS','MigraineFrequency','HAseverity','Chronic','VisualAura','SensAura','SpeechAura'};
+VarNames = {'n','SAAB','Age','MIDAS','MigraineFrequency','HAseverity','LightSensScore','AllodyniaScore','Chronic'};
 for ii = 1:2
     Q{1,ii} = sum(idxSet{ii});
 end
@@ -362,7 +376,7 @@ for ii = 1:2
 end
 end
 
-for vv = 3:6
+for vv = 3:8
 for ii = 1:2
     dataSet = Results.(VarNames{vv})(idxSet{ii});
     % Special case to remove weird age of 558
@@ -371,12 +385,45 @@ for ii = 1:2
 end
 end
 
-for vv = 7:10
+for vv = 9:9
 for ii = 1:2
     dataSet = Dx.(VarNames{vv})(idxSet{ii});
     Q{vv,ii} = sum(dataSet==1)/(sum(dataSet==1)+sum(dataSet==0));
 end
 end
+
+vv = 10;
+ii = 2;
+dataSet = and(Dx.VisualAura(idxSet{ii})==1,Dx.MultiAura(idxSet{ii})==0);
+Q{vv,ii} = sum(dataSet==1)/sum(idxSet{ii});
+
+vv = 11;
+ii = 2;
+dataSet = and(Dx.SensAura(idxSet{ii})==1,Dx.MultiAura(idxSet{ii})==0);
+Q{vv,ii} = sum(dataSet==1)/sum(idxSet{ii});
+
+vv = 12;
+ii = 2;
+dataSet = and(Dx.VisualAura(idxSet{ii})==1,Dx.SensAura(idxSet{ii})==0);
+Q{vv,ii} = sum(dataSet==1)/sum(idxSet{ii});
+
+
+%% Light and touch sensitivity by aura type
+auraLabel = {'visual','sens','vis+sens','other'};
+auraTypeIdx = [];
+auraTypeIdx{1} = and(and(Dx.VisualAura==1,Dx.MultiAura==0),wIdx==1);
+auraTypeIdx{2} = and(and(Dx.SensAura==1,Dx.MultiAura==0),wIdx==1);
+auraTypeIdx{3} = and(and(Dx.VisualAura==1,Dx.SensAura==0),wIdx==1);
+auraTypeIdx{4} = ~logical(auraTypeIdx{1}+auraTypeIdx{2}+auraTypeIdx{3});
+
+for ii = 1:4
+    outLine = sprintf([auraLabel{ii} ': light %2.2f±%2.2f, touch %2.2f±%2.2f \n'],...
+        mean(Results.LightSensScore(auraTypeIdx{ii})),std(Results.LightSensScore(auraTypeIdx{ii})),...
+        mean(Results.AllodyniaScore(auraTypeIdx{ii})),std(Results.AllodyniaScore(auraTypeIdx{ii})));
+    fprintf(outLine);
+end
+
+
 
 
 
