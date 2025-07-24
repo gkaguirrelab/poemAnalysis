@@ -417,12 +417,29 @@ auraTypeIdx{3} = and(and(Dx.VisualAura==1,Dx.SensAura==0),wIdx==1);
 auraTypeIdx{4} = ~logical(auraTypeIdx{1}+auraTypeIdx{2}+auraTypeIdx{3});
 
 for ii = 1:4
+    lightSensStore{ii} = Results.LightSensScore(auraTypeIdx{ii});
+    touchSensStore{ii} = Results.AllodyniaScore(auraTypeIdx{ii});    
     outLine = sprintf([auraLabel{ii} ': light %2.2f±%2.2f, touch %2.2f±%2.2f \n'],...
         mean(Results.LightSensScore(auraTypeIdx{ii})),std(Results.LightSensScore(auraTypeIdx{ii})),...
         mean(Results.AllodyniaScore(auraTypeIdx{ii})),std(Results.AllodyniaScore(auraTypeIdx{ii})));
     fprintf(outLine);
 end
+fprintf('\n');
 
+% Light sens between groups
+for aa = 1:4
+    for bb = aa+1:4
+        if aa == bb
+            continue
+        else
+        [~,pLight]=ttest2(lightSensStore{aa},lightSensStore{bb});
+        [~,pTouch]=ttest2(touchSensStore{aa},touchSensStore{bb});
+        outLine = sprintf([auraLabel{aa} ' - ' auraLabel{bb} ' : light %2.3f, touch %2.3f \n'],...
+            pLight, pTouch);
+        fprintf(outLine);
+        end
+    end
+end
 
 
 
