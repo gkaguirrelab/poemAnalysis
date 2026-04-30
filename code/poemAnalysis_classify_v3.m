@@ -4,12 +4,20 @@ function [Dx] = poemAnalysis_classify_v3( T )
 
 % Migraine diagnosis
 
-Dx = T(:,20); % start table with SubjectID
+Dx = T(:,16); % start table with SubjectID
 
 if ismember('CHYPS_total_score', T.Properties.VariableNames) % Check if CHYPS_total_score is a column of the table
     Dx.CHYPS = T.CHYPS_total_score;
+    Dx.CHYPS_Brightness = T.CHYPS_Brightness;
+    Dx.CHYPS_Pattern = T.CHYPS_Pattern;
+    Dx.CHYPS_Strobing = T.CHYPS_Strobing;
+    Dx.CHYPS_IntenseVisEnviro = T.CHYPS_IntenseVisEnviro;
 end
-Dx.MigraineFrequency = T.MigFreq;
+
+% Report MIDAS score
+Dx.MIDAS_score = T.MIDAS_score;
+
+Dx.MonthlyMigraineFrequency = T.MigFreq;
 
 Dx.Migraine = zeros(height(Dx),1);
 Dx.Migraine(T.migICHD_A==1 & T.migICHD_B==1 & T.migICHD_C>=2 & T.migICHD_D==1) = 1;
